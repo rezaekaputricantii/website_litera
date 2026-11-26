@@ -14,6 +14,7 @@
     <!-- FontAwesome Icons & Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="halamanpages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         /* Modifikasi Tambahan Integrasi Guest & Modal */
@@ -47,6 +48,66 @@
         }
         .btn-guest-register:hover {
             opacity: 0.9;
+        }
+
+        /* Profil Pengguna Login di Navbar */
+        .landing-user-profile {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            transition: background-color 0.2s;
+        }
+        .landing-user-profile:hover {
+            background-color: var(--litera-surface, #f1f5f9);
+        }
+        .landing-user-profile img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .landing-user-profile span {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--litera-dark, #1e293b);
+        }
+
+        /* Tampilan Buku Sold Out (Sama persis dengan Katalog) */
+        .product-card.is-sold-out .product-img-wrapper img {
+            filter: grayscale(100%) brightness(0.75);
+        }
+        .badge-sold-out {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #991b1b;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            padding: 0.45rem 1.15rem;
+            border: 1.5px solid rgba(255, 255, 255, 0.85);
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 5;
+            pointer-events: none;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .btn-sold-out {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background-color: #e2e8f0;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: not-allowed;
         }
 
         /* Modal Pop-up Auth Prompt for Guest */
@@ -165,13 +226,17 @@
                 <a href="#katalog-section" onclick="navigate('home')">Katalog</a>
                 <a href="#artikel">Artikel</a>
                 <a href="#tentang-kami">Tentang Kami</a>
-                <button onclick="promptGuestLogin('Keranjang Belanja')" class="icon-btn" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #334155; position: relative;">
+                <button onclick="handleAuthenticatedAction('Keranjang Belanja', '../Katalog/index.html')" class="icon-btn" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #334155; position: relative;">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-badge" class="badge" style="position: absolute; top: -6px; right: -8px; background: #2563eb; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
                 </button>
-                <div class="auth-nav-buttons">
-                    <a href="/login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
-                    <a href="/login/index.html?register=true" class="btn-guest-register">Daftar</a>
+                <div id="guest-auth-buttons" class="auth-nav-buttons">
+                    <a href="../login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
+                    <a href="../login/index.html?register=true" class="btn-guest-register">Daftar</a>
+                </div>
+                <div id="landing-user-profile" class="landing-user-profile" onclick="goToAccountDashboard()">
+                    <img id="landing-user-avatar" src="../foto/logo.jpeg" alt="Avatar">
+                    <span id="landing-user-name">Pengguna Litera</span>
                 </div>
             </div>
         </div>
@@ -198,7 +263,7 @@
                     <h2>Barter & Jual Buku <span>Mudah dan Aman</span></h2>
                     <p>Sistem verifikasi Quality Control (QC) fisik memastikan kondisi buku bekas perkuliahan tetap layak baca bagi pembeli berikutnya.</p>
                     <div class="hero-btns">
-                        <a href="javascript:void(0)" onclick="promptGuestLogin('Titip Jual Buku')" class="btn-primary"><i class="fa-solid fa-hand-holding-hand"></i> Ajukan Titip Jual</a>
+                        <a href="javascript:void(0)" onclick="handleAuthenticatedAction('Titip Jual Buku', '../Dashboard Pengguna/index.html')" class="btn-primary"><i class="fa-solid fa-hand-holding-hand"></i> Ajukan Titip Jual</a>
                     </div>
                 </div>
                 <div class="hero-image">
@@ -252,7 +317,7 @@
                         <span class="price-old" style="font-size: 0.75rem; color: #64748b; text-decoration: line-through;">Rp 150.000</span>
                         <span class="price-new" style="font-size: 1.125rem; font-weight: 800; color: #701D28; display: block;">Rp 120.000</span>
                     </div>
-                    <button onclick="promptGuestLogin('Pembelian Paket Bundling')" class="btn-dark" style="margin-top: 0.5rem; background: #111; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Beli Paket</button>
+                    <button onclick="handleAuthenticatedAction('Pembelian Paket Bundling', '../Katalog/index.html')" class="btn-dark" style="margin-top: 0.5rem; background: #111; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Beli Paket</button>
                 </div>
             </div>
 
@@ -267,8 +332,9 @@
 
             <div class="pdp-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 2rem; display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem;">
                 <div class="pdp-gallery">
-                    <div class="pdp-img-box" style="width: 100%; height: 400px; background-color: #f8f9fa; border-radius: 0.75rem; overflow: hidden;">
+                    <div class="pdp-img-box" style="position: relative; width: 100%; height: 400px; background-color: #f8f9fa; border-radius: 0.75rem; overflow: hidden;">
                         <img id="pdp-img" src="" alt="Detail Buku" style="width: 100%; height: 100%; object-fit: contain;">
+                        <span id="pdp-sold-badge" class="badge-sold-out" style="display: none;">SOLD OUT</span>
                     </div>
                 </div>
 
@@ -277,6 +343,7 @@
                         <div class="pdp-tags" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                             <span id="pdp-category" class="badge-tag" style="background: rgba(0,0,0,0.1); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.6875rem; font-weight: 700;">Kategori</span>
                             <span id="pdp-grade" class="badge-grade" style="background: #fff; color: #701D28; border: 1px solid #701D28; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.625rem; font-weight: 800;">Grade A</span>
+                            <span id="pdp-stock-badge" class="badge-tag" style="background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.6875rem; font-weight: 700;">Tersedia</span>
                         </div>
                         <h1 id="pdp-title" class="pdp-title" style="font-size: 1.5rem; font-weight: 800; line-height: 1.3;">Judul Buku</h1>
                         <p id="pdp-author" class="pdp-author" style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">Penulis</p>
@@ -300,7 +367,7 @@
                     </div>
 
                     <div style="padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                        <button onclick="promptGuestLogin('Tambah ke Keranjang')" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem; background: #701D28; color: #fff; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                        <button id="pdp-add-btn" onclick="handleAuthenticatedAction('Tambah ke Keranjang', '../Katalog/index.html')" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem; background: #701D28; color: #fff; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fa-solid fa-cart-plus"></i> <span>Tambah ke Keranjang</span>
                         </button>
                     </div>
@@ -433,7 +500,7 @@
             </p>
             <div class="modal-actions">
                 <button onclick="closeGuestModal()" class="btn-modal-cancel">Nanti Saja</button>
-                <a href="/login/index.html" class="btn-modal-login">Masuk Sekarang</a>
+                <a href="../login/index.html" class="btn-modal-login">Masuk Sekarang</a>
             </div>
         </div>
     </div>
@@ -492,11 +559,81 @@
     <!-- JAVASCRIPT SLIDER & LOGIKA KATALOG LANDING PAGE -->
     <script>
         function getApiBaseUrl() {
-            const origin = window.location.origin;
-            if (!origin || origin === 'null' || window.location.protocol === 'file:') {
-                return 'http://localhost:3000';
+            const isLocalLiveServer =
+                ['127.0.0.1', 'localhost'].includes(window.location.hostname) &&
+                window.location.port !== '3000';
+            if (isLocalLiveServer || !window.location.origin || window.location.origin === 'null' || window.location.protocol === 'file:') {
+                return 'http://127.0.0.1:3000';
             }
-            return origin;
+            return '';
+        }
+
+        function getLoggedInUser() {
+            try {
+                const raw = localStorage.getItem('user');
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function applyLandingUserProfile() {
+            const user = getLoggedInUser();
+            const guestButtons = document.getElementById('guest-auth-buttons');
+            const userProfile = document.getElementById('landing-user-profile');
+
+            if (!user) {
+                if (guestButtons) guestButtons.style.display = 'flex';
+                if (userProfile) userProfile.style.display = 'none';
+                return;
+            }
+
+            const displayName = (user.nama || user.name || user.username) || 'Pengguna Litera';
+            const customPhoto = user.foto || user.avatar || user.photo;
+            const initial = encodeURIComponent(displayName.trim().charAt(0).toUpperCase() || 'L');
+            const avatarSrc = customPhoto || `https://ui-avatars.com/api/?name=${initial}&background=7a1c24&color=ffffff&bold=true`;
+
+            if (guestButtons) guestButtons.style.display = 'none';
+            if (userProfile) userProfile.style.display = 'flex';
+
+            const nameEl = document.getElementById('landing-user-name');
+            const avatarEl = document.getElementById('landing-user-avatar');
+            if (nameEl) nameEl.textContent = displayName;
+            if (avatarEl) {
+                avatarEl.src = avatarSrc;
+                avatarEl.alt = displayName;
+            }
+        }
+
+        function goToAccountDashboard() {
+            const user = getLoggedInUser();
+            if (!user) {
+                window.location.href = '../login/index.html';
+                return;
+            }
+            const role = String(user.role || '').toLowerCase();
+            if (role === 'admin' || role === 'administrator') {
+                window.location.href = '../Dashboard Admin/index.html';
+            } else {
+                window.location.href = '../Dashboard Pengguna/index.html';
+            }
+        }
+
+        function handleAuthenticatedAction(featureName, targetUrl) {
+            const user = getLoggedInUser();
+            if (!user) {
+                promptGuestLogin(featureName);
+                return;
+            }
+            window.location.href = targetUrl;
+        }
+
+        function isBookSoldOut(book) {
+            const rawStock = book.stock !== undefined && book.stock !== null && book.stock !== ''
+                ? Number(book.stock)
+                : 1;
+            const status = String(book.status || '').toUpperCase().trim();
+            return rawStock <= 0 || status === 'SOLD OUT' || status === 'TERJUAL' || status === 'HABIS';
         }
 
         let currentSlide = 0;
@@ -554,6 +691,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
+            applyLandingUserProfile();
             updateSlider();
             startTimer();
             fetchBooksFromBackend();
@@ -573,7 +711,7 @@
 
         function fetchFooterSettings() {
             const baseUrl = getApiBaseUrl();
-            fetch(`${baseUrl}/api/settings`)
+            fetch(`${baseUrl}/api/settings`, { cache: 'no-store' })
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success || !data.settings) return;
@@ -618,6 +756,8 @@
                 category: localCovers[title].category,
                 grade: localCovers[title].grade,
                 price: localCovers[title].price,
+                stock: 1,
+                status: 'READY',
                 rating: 4.8,
                 img: localCovers[title].img,
                 desc: localCovers[title].desc
@@ -626,13 +766,20 @@
 
         function fetchBooksFromBackend() {
             const baseUrl = getApiBaseUrl();
-            fetch(`${baseUrl}/api/books`)
-                .then(res => res.json())
+            fetch(`${baseUrl}/api/books?t=${Date.now()}`, { cache: 'no-store' })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(result => {
                     const dbData = result.books || result.data || [];
-                    if (result.success && dbData.length > 0) {
+                    if (result.success && Array.isArray(dbData) && dbData.length > 0) {
                         const mapped = dbData.map(b => {
                             const local = localCovers[b.title] || {};
+                            const stockVal = (b.stock !== undefined && b.stock !== null && b.stock !== '')
+                                ? Number(b.stock)
+                                : 1;
+                            const statusVal = b.status || (stockVal <= 0 ? 'SOLD OUT' : 'READY');
                             return {
                                 id: b.id,
                                 title: b.title,
@@ -640,9 +787,11 @@
                                 category: b.category || local.category || 'Fiksi',
                                 grade: b.grade || local.grade || 'Grade A (Mulus)',
                                 price: Number(b.price) || local.price || 0,
+                                stock: stockVal,
+                                status: statusVal,
                                 rating: b.rating || 4.8,
-                                img: b.img ? b.img : (local.img || 'https://via.placeholder.com/120x150?text=Cover'),
-                                desc: b.description || b.desc || local.desc || 'Deskripsi lengkap belum tersedia.'
+                                img: local.img ? local.img : (b.img || 'https://via.placeholder.com/120x150?text=Cover'),
+                                desc: local.desc ? local.desc : (b.description || b.desc || 'Deskripsi lengkap belum tersedia.')
                             };
                         });
                         
@@ -713,25 +862,30 @@
             }
 
             list.forEach(b => {
+                const soldOut = isBookSoldOut(b);
                 grid.innerHTML += `
-                    <div class="product-card">
+                    <div class="product-card ${soldOut ? 'is-sold-out' : ''}">
                         <div>
-                            <div class="product-img-wrapper" onclick="openPdp('${b.id}')">
+                            <div class="product-img-wrapper" onclick="openPdp('${b.id}')" style="position: relative;">
                                 <img src="${b.img}" alt="${b.title}" onerror="this.src='https://via.placeholder.com/120x150?text=Cover'">
                                 <span class="badge-cat">${b.category}</span>
                                 <span class="badge-grade">${b.grade}</span>
+                                ${soldOut ? '<span class="badge-sold-out">SOLD OUT</span>' : ''}
                             </div>
                             <div class="product-info">
                                 <h3 onclick="openPdp('${b.id}')" class="product-title">${b.title}</h3>
                                 <p class="product-author">${b.author}</p>
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                                    <span class="product-price">Rp ${b.price.toLocaleString('id-ID')}</span>
+                                    <span class="product-price" style="${soldOut ? 'text-decoration: line-through; color: #94a3b8;' : ''}">Rp ${b.price.toLocaleString('id-ID')}</span>
                                     <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;"><i class="fa-solid fa-star"></i> ${b.rating}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="product-action">
-                            <button onclick="promptGuestLogin('Tambah ke Keranjang')" class="btn-secondary">+ Keranjang</button>
+                            ${soldOut
+                                ? '<button disabled class="btn-sold-out">Sold Out (Terjual)</button>'
+                                : '<button onclick="handleAuthenticatedAction(\'Tambah ke Keranjang\', \'../Katalog/index.html\')" class="btn-secondary">+ Keranjang</button>'
+                            }
                         </div>
                     </div>
                 `;
@@ -741,13 +895,44 @@
         function openPdp(id) {
             selectedPdp = allBooks.find(b => String(b.id) === String(id));
             if (!selectedPdp) return;
-            document.getElementById('pdp-img').src = selectedPdp.img;
+
+            const soldOut = isBookSoldOut(selectedPdp);
+            const pdpImg = document.getElementById('pdp-img');
+            pdpImg.src = selectedPdp.img;
+            pdpImg.style.filter = soldOut ? 'grayscale(100%) brightness(0.75)' : 'none';
+
+            document.getElementById('pdp-sold-badge').style.display = soldOut ? 'block' : 'none';
             document.getElementById('pdp-title').innerText = selectedPdp.title;
             document.getElementById('pdp-author').innerText = selectedPdp.author;
             document.getElementById('pdp-category').innerText = selectedPdp.category;
             document.getElementById('pdp-grade').innerText = selectedPdp.grade;
             document.getElementById('pdp-price').innerText = `Rp ${selectedPdp.price.toLocaleString('id-ID')}`;
             document.getElementById('pdp-desc').innerText = selectedPdp.desc;
+
+            const stockBadge = document.getElementById('pdp-stock-badge');
+            const addBtn = document.getElementById('pdp-add-btn');
+            if (soldOut) {
+                stockBadge.innerText = 'SOLD OUT';
+                stockBadge.style.background = '#fee2e2';
+                stockBadge.style.color = '#991b1b';
+                addBtn.disabled = true;
+                addBtn.style.background = '#e2e8f0';
+                addBtn.style.color = '#64748b';
+                addBtn.style.border = '1px solid #cbd5e1';
+                addBtn.style.cursor = 'not-allowed';
+                addBtn.innerHTML = '<span>Sold Out (Terjual)</span>';
+            } else {
+                stockBadge.innerText = `Stok: ${selectedPdp.stock} Unit`;
+                stockBadge.style.background = '#dcfce7';
+                stockBadge.style.color = '#166534';
+                addBtn.disabled = false;
+                addBtn.style.background = '#701D28';
+                addBtn.style.color = '#fff';
+                addBtn.style.border = 'none';
+                addBtn.style.cursor = 'pointer';
+                addBtn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> <span>Tambah ke Keranjang</span>';
+            }
+
             navigate('pdp');
         }
 
