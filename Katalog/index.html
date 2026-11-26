@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LITERA - Platform E-Commerce & Marketplace Buku Bekas Makassar</title>
+    <link rel="icon" href="../foto/logo.jpeg">
+    
+    <!-- Link CSS -->
+    <link rel="stylesheet" href="katalog.css">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Midtrans Snap Sandbox JS -->
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-ynHTTuKeGHRedSFJ"></script>
+
+    <style>
+        .product-img-wrapper {
+            position: relative;
+        }
+        .product-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        .pdp-img-box {
+            position: relative;
+        }
+        .pdp-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: #f8f9fa;
+        }
+        .pdp-desc {
+            max-height: none !important;
+            overflow-y: visible !important;
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+        .sold-out-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        .sold-out-badge {
+            background: #b91c1c;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            padding: 0.45rem 1rem;
+            border-radius: 6px;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+        .product-card.is-sold-out .product-img-wrapper img {
+            filter: grayscale(60%);
+            opacity: 0.65;
+        }
+        .btn-sold-out {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER & NAVIGASI UTAMA -->
+    <header class="site-header">
+        <div class="container header-content">
+            <div class="brand-logo" onclick="navigate('home')">
+                <div class="brand-logo-img">
+                    <img src="../foto/logo.jpeg" alt="Logo LITERA" style="height: 40px; width: auto; object-fit: contain; border-radius: 6px;">
+                </div>
+                <div class="brand-tagline">
+                    <span class="brand-tagline-title">LITERA</span>
+                    <span class="brand-tagline-sub">Digital Library & Hub</span>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="global-search" oninput="handleSearch(this.value)" placeholder="Cari judul buku, penulis, jurusan..." class="search-input">
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button onclick="navigate('cart')" class="icon-btn">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-badge" class="badge">0</span>
+                </button>
+                <div class="divider-v"></div>
+                <div class="user-profile" onclick="window.location.href='../Dashboard Pengguna/index.html'" style="cursor: pointer;">
+                    <img id="header-user-avatar" src="../foto/logo.jpeg" alt="Avatar" class="avatar">
+                    <span id="header-user-name" class="username">Pengguna Litera</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SUB NAVIGASI -->
+    <nav class="sub-nav">
+        <div class="container sub-nav-content">
+            <button onclick="navigate('home')" id="nav-home" class="nav-item active">Katalog & Promo</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="container">
+
+        <!-- PAGE 1: HOME & KATALOG -->
+        <div id="page-home">
+            <div class="hero-banner">
+                <div class="hero-body">
+                    <span class="badge-tag">Khusus Mahasiswa Makassar, Gowa & Maros</span>
+                    <h1 class="hero-title">Hemat Kuliah dengan Beli Buku Bekas Berkualitas</h1>
+                    <p class="hero-desc">Platform perantara terpercaya dengan grading kondisi fisik transparan, ongkir terjangkau J&T/JNE, dan sistem pembayaran otomatis QRIS/Midtrans.</p>
+                </div>
+            </div>
+
+            <div class="bundle-card">
+                <div>
+                    <span class="badge-bundle">PAKET BUNDLING HEMAT</span>
+                    <h3 class="bundle-title">Paket Cerdas Bisnis Digital (3 Buku Akademik & Filsafat)</h3>
+                    <p class="bundle-sub">Dapatkan Filsafat Sains, Risalah Kebangkitan, & Filosofi Teras sekaligus!</p>
+                </div>
+                <div class="bundle-pricing">
+                    <div>
+                        <span class="price-old">Rp 150.000</span>
+                        <span class="price-new">Rp 120.000</span>
+                    </div>
+                    <button onclick="addBundleToCart()" class="btn-dark">Beli Paket</button>
+                </div>
+            </div>
+
+            <div class="category-filters">
+                <button onclick="filterCat('All', event)" class="cat-filter-btn active">Semua Koleksi</button>
+                <button onclick="filterCat('Fiksi', event)" class="cat-filter-btn">Novel & Fiksi</button>
+                <button onclick="filterCat('Filsafat', event)" class="cat-filter-btn">Filsafat & Self-Improvement</button>
+                <button onclick="filterCat('Agama', event)" class="cat-filter-btn">Agama & Studi Islam</button>
+                <button onclick="filterCat('Bisnis', event)" class="cat-filter-btn">Bisnis & Manajemen</button>
+            </div>
+
+            <div id="product-grid" class="product-grid">
+                <!-- Data Rendered Real-time from Backend / Catalog -->
+            </div>
+        </div>
+
+        <!-- PAGE 2: PRODUCT DETAIL (PDP) -->
+        <div id="page-pdp" class="hidden pdp-container">
+            <button onclick="navigate('home')" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i><span>Kembali ke Katalog</span>
+            </button>
+
+            <div class="pdp-card">
+                <div class="pdp-gallery">
+                    <div class="pdp-img-box" id="pdp-img-box">
+                        <img id="pdp-img" src="" alt="Detail Buku">
+                        <div id="pdp-sold-out-overlay" class="sold-out-overlay" style="display: none;">
+                            <span class="sold-out-badge">SOLD OUT</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pdp-details">
+                    <div>
+                        <div class="pdp-tags">
+                            <span id="pdp-category" class="badge-tag">Kategori</span>
+                            <span id="pdp-grade" class="badge-grade">Grade A</span>
+                            <span id="pdp-status-badge" class="badge-tag" style="background: #fee2e2; color: #b91c1c; display: none;">SOLD OUT</span>
+                        </div>
+                        <h1 id="pdp-title" class="pdp-title">Judul Buku</h1>
+                        <p id="pdp-author" class="pdp-author">Penulis</p>
+                        <div id="pdp-rating" style="color: #f59e0b; margin-top: 0.5rem; font-size: 0.875rem;">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star-half-stroke"></i>
+                            <span style="color: var(--litera-dark); margin-left: 0.5rem; font-weight: 600;">4.8 / 5.0 (Ulasan Terverifikasi)</span>
+                        </div>
+                    </div>
+
+                    <div class="pdp-price-box">
+                        <span id="pdp-price" class="pdp-price">Rp 0</span>
+                    </div>
+
+                    <div>
+                        <h4 class="pdp-section-title">Deskripsi & Catatan Fisik</h4>
+                        <p id="pdp-desc" class="pdp-desc">Deskripsi buku...</p>
+                    </div>
+
+                    <div style="padding-top: 1rem; border-top: 1px solid var(--litera-surface);">
+                        <button id="btn-pdp-add-cart" onclick="addCurrentPdpToCart()" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem;">
+                            <i class="fa-solid fa-cart-plus"></i><span>Tambah ke Keranjang</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: CHECKOUT & LOGISTIK -->
+        <div id="page-cart" class="hidden checkout-container">
+            <h2 class="page-heading">Checkout & Pemilihan Logistik</h2>
+            
+            <div class="checkout-grid">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="form-card">
+                        <h3 class="form-card-title">
+                            <i class="fa-solid fa-location-dot"></i><span>Alamat Pengiriman (Sulawesi Selatan)</span>
+                        </h3>
+                        <div class="form-grid">
+                            <input type="text" id="cust-name" placeholder="Nama Lengkap" value="" class="form-input">
+                            <input type="text" id="cust-phone" placeholder="No. WhatsApp" value="08123456789" class="form-input">
+                            <select id="cust-region" onchange="calculateShipping()" class="form-select full-width" style="font-weight: 600;">
+                                <option value="Makassar">Kota Makassar (Lokal)</option>
+                                <option value="Gowa">Kabupaten Gowa</option>
+                                <option value="Maros">Kabupaten Maros</option>
+                            </select>
+                            <textarea id="cust-address" rows="2" placeholder="Alamat Lengkap Kos/Rumah" class="form-textarea full-width">Jl. Tamalanrea Indah No. 12, Antang, Makassar</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3 class="form-card-title">
+                            <i class="fa-solid fa-truck-fast"></i><span>Mitra Ekspedisi & Last-Mile</span>
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label class="radio-option">
+                                <div class="radio-group-flex">
+                                    <input type="radio" name="courier" value="JNT" checked onchange="calculateShipping()">
+                                    <div>
+                                        <span class="text-bold">J&T Express Reguler (1-2 Hari)</span>
+                                        <span class="text-sub">Rekomendasi Hemat Kampus</span>
+                                    </div>
+                                </div>
+                                <span id="ongkir-jnt" class="text-bold">Rp 8.000</span>
+                            </label>
+                            <label class="radio-option">
+                                <div class="radio-group-flex">
+                                    <input type="radio" name="courier" value="JNE" onchange="calculateShipping()">
+                                    <div>
+                                        <span class="text-bold">JNE Express (1-3 Hari)</span>
+                                        <span class="text-sub">Jangkauan Luas</span>
+                                    </div>
+                                </div>
+                                <span id="ongkir-jne" class="text-bold">Rp 10.000</span>
+                            </label>
+                            <label class="radio-option">
+                                <div class="radio-group-flex">
+                                    <input type="radio" name="courier" value="PICKUP" onchange="calculateShipping()">
+                                    <div>
+                                        <span class="text-bold" style="color: var(--litera-red);">Click-and-Collect (Pickup Kampus UNM/Unhas)</span>
+                                        <span class="text-sub">Gratis Ongkir + Bebas Emisi Karbon</span>
+                                    </div>
+                                </div>
+                                <span class="text-bold" style="color: var(--litera-red);">GRATIS</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3 class="form-card-title">
+                            <i class="fa-solid fa-wallet"></i><span>Metode Pembayaran (Midtrans Gateway)</span>
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                            <label class="radio-option selected">
+                                <div class="radio-group-flex">
+                                    <input type="radio" name="payment" value="QRIS" checked>
+                                    <div>
+                                        <span class="text-bold">QRIS Dinamis (MDR 0,7%)</span>
+                                        <span class="text-sub">GoPay, DANA, OVO, m-Banking</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <div class="radio-group-flex">
+                                    <input type="radio" name="payment" value="COD">
+                                    <div>
+                                        <span class="text-bold">COD (Bayar di Tempat)</span>
+                                        <span class="text-sub">Khusus Wilayah Makassar</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="summary-title">Ringkasan Pesanan</h3>
+                    <div id="cart-summary-items" class="summary-items"></div>
+                    <div class="summary-totals">
+                        <div class="summary-row" style="color: var(--litera-gray);">
+                            <span>Subtotal Buku</span>
+                            <span id="subtotal-val">Rp 0</span>
+                        </div>
+                        <div class="summary-row" style="color: var(--litera-gray);">
+                            <span>Ongkos Kirim</span>
+                            <span id="ongkir-val">Rp 8.000</span>
+                        </div>
+                        <div class="total-final">
+                            <span>Total Tagihan</span>
+                            <span id="total-val" style="color: var(--litera-red);">Rp 0</span>
+                        </div>
+                    </div>
+                    <button id="btn-checkout-pay" onclick="processCheckout()" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
+                        <i class="fa-solid fa-lock"></i><span>Bayar Sekarang (Midtrans)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: TRACKING ORDER (AWB) -->
+        <div id="page-orders" class="hidden checkout-container">
+            <h2 class="page-heading">Lacak Pengiriman Pesanan (AWB Tracking)</h2>
+
+            <div class="form-card" style="margin-bottom: 1.25rem;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="awb-search-input" oninput="renderOrdersTracking(this.value)" placeholder="Cari Nomor Invoice atau Nomor Resi (AWB) pesanan Anda..." class="form-input" style="flex: 1; min-width: 220px;">
+                    <select id="awb-order-select" onchange="selectOrderForTracking(this.value)" class="form-select" style="min-width: 240px;">
+                        <option value="">Pilih Pesanan Anda</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="awb-tracking-content"></div>
+        </div>
+
+        <!-- PAGE 5: FORM PENGAJUAN RETUR -->
+        <div id="page-returns" class="hidden" style="max-width: 42rem; margin: 0 auto;">
+            <h2 class="page-heading" style="margin-bottom: 1.5rem;">Form Pengajuan Retur (Maks. 2x24 Jam)</h2>
+            <div class="form-card">
+                <p style="font-size: 0.75rem; color: var(--litera-gray);">Retur berlaku jika fisik buku cacat parah/terlepas yang tidak tertera pada deskripsi katalog.</p>
+                <form id="form-return" onsubmit="handleReturnSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.75rem;">
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 0.25rem;">Nomor Invoice / Order ID</label>
+                        <input type="text" id="return-invoice" required placeholder="Masukkan Nomor Invoice pesanan Anda" class="form-input">
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 0.25rem;">Alasan Komplain</label>
+                        <select id="return-reason" class="form-select">
+                            <option>Halaman buku sobek/hilang parah</option>
+                            <option>Judul buku tidak sesuai pesanan</option>
+                            <option>Buku basah saat pengiriman</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 700; display: block; margin-bottom: 0.25rem;">Upload Bukti Video Unboxing Utuh (Tanpa Jeda)</label>
+                        <input type="file" id="return-video" accept="video/*,image/*" required class="form-input">
+                    </div>
+                    <button type="submit" class="btn-primary" style="justify-content: center; padding: 0.75rem;">Kirim Ajuan Retur</button>
+                </form>
+            </div>
+
+            <div id="returns-history-container" style="margin-top: 1.5rem;"></div>
+        </div>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC FRONTEND, BACKEND & MIDTRANS SNAP -->
+    <script>
+        const isLocalLiveServer =
+            ['127.0.0.1', 'localhost'].includes(window.location.hostname) &&
+            window.location.port !== '3000';
+
+        const API_BASE_URL = isLocalLiveServer ? 'http://127.0.0.1:3000' : '';
+
+        let allBooks = [];
+        let books = [];
+        let cart = [];
+        let selectedPdp = null;
+        let selectedOrderInvoice = '';
+
+        const fallbackBooks = [
+            {
+                id: 1,
+                title: "Risalah Kebangkitan - Penalaran terhadap Realitas Akhirat",
+                author: "Badiuzzaman Said Nursi",
+                category: "Agama",
+                grade: "Grade B+ (Layak Baca)",
+                price: 50000,
+                rating: 4.8,
+                stock: 1,
+                status: "READY",
+                img: "../foto/risalah kebangkitan.jpeg",
+                desc: "Judul: Risalah Kebangkitan – Penalaran terhadap Realitas Akhirat\nPenulis: Badiuzzaman Said Nursi (Risalah Nur Press)\nKondisi Fisik: Grade B+ (Layak Baca / Pre-loved Good Condition)\nDetail: Sudut cover kanan atas & bawah sedikit berlekuk/aus pemakaian wajar."
+            },
+            {
+                id: 2,
+                title: "Namaku Alam",
+                author: "Leila S. Chudori",
+                category: "Fiksi",
+                grade: "Grade A (Mulus)",
+                price: 65000,
+                rating: 4.9,
+                stock: 1,
+                status: "READY",
+                img: "../foto/namaku alam.jpeg",
+                desc: "Judul: Namaku Alam\nPenulis: Leila S. Chudori (Penerbit KPG)\nKondisi Fisik: Grade A (Pre-loved Like New / Mulus Original)\nDetail: Kertas bersih, tidak ada coretan, sangat terawat."
+            },
+            {
+                id: 3,
+                title: "Animal Farm (Republik Hewan)",
+                author: "George Orwell",
+                category: "Fiksi",
+                grade: "Grade A (Mulus)",
+                price: 45000,
+                rating: 4.7,
+                stock: 1,
+                status: "READY",
+                img: "../foto/animal farm.jpeg",
+                desc: "Judul: Animal Farm (Republik Hewan)\nPenulis: George Orwell (Gramedia Pustaka Utama)\nKondisi Fisik: Grade A (Mulus Original)\nDetail: Novel klasik satire politik yang sangat direkomendasikan untuk dibaca."
+            },
+            {
+                id: 4,
+                title: "Angel & Demon",
+                author: "Helena Abidin, Suhartono C., Timoteus T.",
+                category: "Bisnis",
+                grade: "Grade A (Mulus)",
+                price: 50000,
+                rating: 4.6,
+                stock: 1,
+                status: "READY",
+                img: "../foto/angel & demon.jpeg",
+                desc: "Judul: Angel & Demon\nPenulis: Helena Abidin, Suhartono Chandra, Timoteus Talip (Grasindo)\nCatatan: National Bestseller.\nDetail: Buku bisnis dan strategi korporasi berkualitas tinggi."
+            },
+            {
+                id: 5,
+                title: "Filsafat Sains - Dari Newton, Einstein hingga Sains-Data",
+                author: "Dimitri Mahayana",
+                category: "Filsafat",
+                grade: "Grade B (Layak)",
+                price: 50000,
+                rating: 4.5,
+                stock: 1,
+                status: "READY",
+                img: "../foto/filsafat sains.jpeg",
+                desc: "Judul: Filsafat Sains – Dari Newton, Einstein hingga Sains-Data\nPenulis: Dimitri Mahayana\nKondisi Fisik: Grade B (Layak)\nDetail: Catatan pinggir tipis dengan stabilo pada beberapa halaman penting."
+            },
+            {
+                id: 6,
+                title: "Filosofi Teras - Filsafat Yunani-Romawi Kuno",
+                author: "Henry Manampiring",
+                category: "Filsafat",
+                grade: "Grade A (Mulus)",
+                price: 55000,
+                rating: 5.0,
+                stock: 1,
+                status: "READY",
+                img: "../foto/filosofi teras.jpeg",
+                desc: "Judul: Filosofi Teras\nPenulis: Henry Manampiring\nCatatan: National Best Seller Stoisisme Modern.\nDetail: Buku panduan mengatasi emosi negatif dan mental tangguh."
+            },
+            {
+                id: 7,
+                title: "Tentang Kamu",
+                author: "Tere Liye",
+                category: "Fiksi",
+                grade: "Grade B+ (Layak)",
+                price: 50000,
+                rating: 4.8,
+                stock: 1,
+                status: "READY",
+                img: "../foto/tentang kamu.jpeg",
+                desc: "Judul: Tentang Kamu\nPenulis: Tere Liye\nKondisi Fisik: Grade B+ (Preloved Bagus).\nDetail: Novel drama pencarian jati diri yang emosional dan penuh inspirasi."
+            },
+            {
+                id: 8,
+                title: "Pulang",
+                author: "Leila S. Chudori",
+                category: "Fiksi",
+                grade: "Grade A (Mulus)",
+                price: 60000,
+                rating: 4.9,
+                stock: 1,
+                status: "READY",
+                img: "../foto/pulang.jpeg",
+                desc: "Judul: Pulang\nPenulis: Leila S. Chudori (Penerbit KPG)\nKondisi Fisik: Grade A (Mulus Original).\nDetail: Kisah eksil politik Indonesia 1965 di Paris dengan latar belakang kuliner."
+            },
+            {
+                id: 9,
+                title: "Hujan",
+                author: "Tere Liye",
+                category: "Fiksi",
+                grade: "Grade A (Mulus)",
+                price: 50000,
+                rating: 4.9,
+                stock: 1,
+                status: "READY",
+                img: "../foto/hujan.jpeg",
+                desc: "Judul: Hujan\nPenulis: Tere Liye (Gramedia Pustaka Utama)\nKondisi Fisik: Grade A (Mulus Original).\nDetail: Novel percintaan berlatar belakang masa depan tentang persahabatan, cinta, dan melupakan."
+            }
+        ];
+
+        const localCovers = {
+            "Risalah Kebangkitan - Penalaran terhadap Realitas Akhirat": { img: "../foto/risalah kebangkitan.jpeg", desc: "Judul: Risalah Kebangkitan – Penalaran terhadap Realitas Akhirat\nPenulis: Badiuzzaman Said Nursi (Risalah Nur Press)\nKondisi Fisik: Grade B+ (Layak Baca / Pre-loved Good Condition)\nDetail: Sudut cover kanan atas & bawah sedikit berlekuk/aus pemakaian wajar." },
+            "Namaku Alam": { img: "../foto/namaku alam.jpeg", desc: "Judul: Namaku Alam\nPenulis: Leila S. Chudori (Penerbit KPG)\nKondisi Fisik: Grade A (Pre-loved Like New / Mulus Original)\nDetail: Kertas bersih, tidak ada coretan, sangat terawat." },
+            "Animal Farm (Republik Hewan)": { img: "../foto/animal farm.jpeg", desc: "Judul: Animal Farm (Republik Hewan)\nPenulis: George Orwell (Gramedia Pustaka Utama)\nKondisi Fisik: Grade A (Mulus Original)\nDetail: Novel klasik satire politik yang sangat direkomendasikan untuk dibaca." },
+            "Angel & Demon": { img: "../foto/angel & demon.jpeg", desc: "Judul: Angel & Demon\nPenulis: Helena Abidin, Suhartono Chandra, Timoteus Talip (Grasindo)\nCatatan: National Bestseller.\nDetail: Buku bisnis dan strategi korporasi berkualitas tinggi." },
+            "Filsafat Sains - Dari Newton, Einstein hingga Sains-Data": { img: "../foto/filsafat sains.jpeg", desc: "Judul: Filsafat Sains – Dari Newton, Einstein hingga Sains-Data\nPenulis: Dimitri Mahayana\nKondisi Fisik: Grade B (Layak)\nDetail: Catatan pinggir tipis dengan stabilo pada beberapa halaman penting." },
+            "Filosofi Teras - Filsafat Yunani-Romawi Kuno": { img: "../foto/filosofi teras.jpeg", desc: "Judul: Filosofi Teras\nPenulis: Henry Manampiring\nCatatan: National Best Seller Stoisisme Modern.\nDetail: Buku panduan mengatasi emosi negatif dan mental tangguh." },
+            "Tentang Kamu": { img: "../foto/tentang kamu.jpeg", desc: "Judul: Tentang Kamu\nPenulis: Tere Liye\nKondisi Fisik: Grade B+ (Preloved Bagus).\nDetail: Novel drama pencarian jati diri yang emosional dan penuh inspirasi." },
+            "Pulang": { img: "../foto/pulang.jpeg", desc: "Judul: Pulang\nPenulis: Leila S. Chudori (Penerbit KPG)\nKondisi Fisik: Grade A (Mulus Original).\nDetail: Kisah eksil politik Indonesia 1965 di Paris dengan latar belakang kuliner." },
+            "Hujan": { img: "../foto/hujan.jpeg", desc: "Judul: Hujan\nPenulis: Tere Liye (Gramedia Pustaka Utama)\nKondisi Fisik: Grade A (Mulus Original).\nDetail: Novel percintaan berlatar belakang masa depan tentang persahabatan, cinta, dan melupakan." }
+        };
+
+        function isBookSoldOut(book) {
+            if (!book) return false;
+            const stockEmpty = book.stock !== undefined && book.stock !== null && Number(book.stock) <= 0;
+            const statusSoldOut = book.status && String(book.status).trim().toUpperCase() === 'SOLD OUT';
+            return stockEmpty || statusSoldOut;
+        }
+
+        // Langsung ubah status buku di memori tampilan menjadi SOLD OUT setelah dibayar
+        function markPurchasedBooksLocallySoldOut(purchasedCart) {
+            const purchasedIds = purchasedCart.map(item => String(item.id));
+            allBooks = allBooks.map(b => {
+                if (purchasedIds.includes(String(b.id))) {
+                    return { ...b, stock: 0, status: 'SOLD OUT' };
+                }
+                return b;
+            });
+            books = books.map(b => {
+                if (purchasedIds.includes(String(b.id))) {
+                    return { ...b, stock: 0, status: 'SOLD OUT' };
+                }
+                return b;
+            });
+            renderProducts(books);
+        }
+
+        function getLoggedInUser() {
+            try {
+                const raw = localStorage.getItem('user');
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function applyLoggedInUserProfile() {
+            const user = getLoggedInUser();
+            const displayName = (user && (user.nama || user.name || user.username)) || 'Pengguna Litera';
+            const nameEl = document.getElementById('header-user-name');
+            const avatarEl = document.getElementById('header-user-avatar');
+            const custNameEl = document.getElementById('cust-name');
+
+            if (nameEl) {
+                nameEl.textContent = displayName;
+            }
+
+            if (avatarEl) {
+                const customPhoto = user && (user.foto || user.avatar || user.photo);
+                if (customPhoto) {
+                    avatarEl.src = customPhoto;
+                } else {
+                    const initial = encodeURIComponent(displayName.trim().charAt(0).toUpperCase() || 'L');
+                    avatarEl.src = `https://ui-avatars.com/api/?name=${initial}&background=7a1c24&color=ffffff&bold=true`;
+                }
+                avatarEl.alt = displayName;
+            }
+
+            if (custNameEl && !custNameEl.value.trim()) {
+                custNameEl.value = displayName !== 'Pengguna Litera' ? displayName : '';
+            }
+        }
+
+        function getStoredOrders() {
+            try {
+                const raw = localStorage.getItem('litera_orders');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveStoredOrders(orders) {
+            localStorage.setItem('litera_orders', JSON.stringify(orders));
+        }
+
+        function getStoredReturns() {
+            try {
+                const raw = localStorage.getItem('litera_returns');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveStoredReturns(returnsList) {
+            localStorage.setItem('litera_returns', JSON.stringify(returnsList));
+        }
+
+        function createOrderRecord({ dbOrderId, orderId, customerName, customerPhone, region, address, courier, paymentMethod, totalPrice, items, paymentStatus }) {
+            const now = new Date();
+            const dateStr = now.toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA';
+            const prefix = courier === 'JNE' ? 'JNE' : (courier === 'PICKUP' ? 'PKP' : 'JT');
+            const awb = courier === 'PICKUP'
+                ? `PICKUP-HUB-${String(dbOrderId || Date.now()).slice(-6)}`
+                : `${prefix}${String(Date.now()).slice(-10)}`;
+
+            const newOrder = {
+                id: dbOrderId || Date.now(),
+                invoice: orderId || `INV/LITERA/${Date.now()}`,
+                awb: awb,
+                customer_name: customerName,
+                customer_phone: customerPhone,
+                region: region,
+                address: address,
+                courier: courier,
+                payment_method: paymentMethod,
+                total_price: totalPrice,
+                items: items,
+                status: paymentStatus || (paymentMethod === 'COD' ? 'COD - Diproses' : 'Menunggu Pembayaran'),
+                created_at: dateStr,
+                timeline: [
+                    {
+                        title: paymentMethod === 'COD' ? 'Pesanan COD Tercatat' : 'Pesanan Dibuat',
+                        detail: `${dateStr} • Metode: ${paymentMethod}`,
+                        active: true
+                    },
+                    {
+                        title: 'Verifikasi & Packing QC Hub Litera',
+                        detail: `Wilayah: ${region} • Ekspedisi: ${courier}`,
+                        active: paymentMethod === 'COD' || paymentStatus === 'Pembayaran Terverifikasi'
+                    },
+                    {
+                        title: courier === 'PICKUP' ? 'Siap Diambil di Kampus UNM/Unhas' : `Pengiriman Kurir (${awb})`,
+                        detail: address,
+                        active: false
+                    }
+                ]
+            };
+
+            const orders = getStoredOrders();
+            orders.unshift(newOrder);
+            saveStoredOrders(orders);
+            selectedOrderInvoice = newOrder.invoice;
+            renderOrdersTracking();
+            return newOrder;
+        }
+
+        function updateOrderPaymentStatus(invoice, newStatus) {
+            if (!invoice) return;
+            const orders = getStoredOrders();
+            const updated = orders.map(o => {
+                if (o.invoice === invoice) {
+                    return { ...o, status: newStatus };
+                }
+                return o;
+            });
+            saveStoredOrders(updated);
+            renderOrdersTracking();
+        }
+
+        function populateOrderDropdown(orders) {
+            const select = document.getElementById('awb-order-select');
+            if (!select) return;
+            select.innerHTML = '<option value="">Pilih Pesanan Anda</option>';
+            orders.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.invoice;
+                opt.textContent = `${o.invoice} — ${o.awb} (${o.status})`;
+                if (o.invoice === selectedOrderInvoice) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function selectOrderForTracking(invoice) {
+            selectedOrderInvoice = invoice;
+            const searchInput = document.getElementById('awb-search-input');
+            if (searchInput && invoice) {
+                searchInput.value = invoice;
+            }
+            renderOrdersTracking(invoice);
+        }
+
+        function renderOrdersTracking(filterText = '') {
+            const container = document.getElementById('awb-tracking-content');
+            if (!container) return;
+
+            const orders = getStoredOrders();
+            populateOrderDropdown(orders);
+
+            const q = String(filterText || '').trim().toLowerCase();
+            const filtered = q
+                ? orders.filter(o =>
+                    (o.invoice && o.invoice.toLowerCase().includes(q)) ||
+                    (o.awb && o.awb.toLowerCase().includes(q)) ||
+                    (o.items && o.items.toLowerCase().includes(q))
+                )
+                : orders;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="tracking-card" style="text-align: center; padding: 2.5rem;">
+                        <p style="font-weight: 700; margin-bottom: 0.5rem;">Belum ada data pesanan tercatat</p>
+                        <p style="font-size: 0.8rem; color: var(--litera-gray);">Lakukan checkout di menu Katalog & Promo untuk membuat pesanan dan nomor resi (AWB) nyata.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(order => {
+                const timelineHtml = (order.timeline || []).map(step => `
+                    <div class="timeline-item">
+                        <span class="timeline-dot ${step.active ? '' : 'inactive'}"></span>
+                        <p style="font-weight: 700; ${step.active ? '' : 'color: var(--litera-dark);'}">${step.title}</p>
+                        <p style="color: var(--litera-gray);">${step.detail}</p>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="tracking-card" style="margin-bottom: 1rem;">
+                        <div class="tracking-header">
+                            <div>
+                                <span style="font-size: 0.75rem; color: var(--litera-gray);">Nomor Invoice: <strong>${order.invoice}</strong></span>
+                                <h3 style="font-size: 1.125rem; font-weight: 700;">Resi ${order.courier}: <span style="color: var(--litera-red);">${order.awb}</span></h3>
+                                <p style="font-size: 0.75rem; color: var(--litera-gray); margin-top: 0.25rem;">Penerima: <strong>${order.customer_name}</strong> • Buku: ${order.items}</p>
+                            </div>
+                            <span class="badge-tag" style="background-color: var(--litera-surface); color: var(--litera-black);">${order.status}</span>
+                        </div>
+                        <div class="timeline">
+                            ${timelineHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderReturnsHistory() {
+            const container = document.getElementById('returns-history-container');
+            if (!container) return;
+
+            const returnsList = getStoredReturns();
+            if (returnsList.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">Riwayat Pengajuan Retur Anda</h3>
+                ${returnsList.map(r => `
+                    <div class="form-card" style="margin-bottom: 0.75rem; font-size: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                            <strong>Invoice: ${r.invoice}</strong>
+                            <span class="badge-tag">${r.status}</span>
+                        </div>
+                        <p style="margin-top: 0.35rem; color: var(--litera-dark);">Alasan: ${r.reason}</p>
+                        <p style="margin-top: 0.2rem; color: var(--litera-gray);">Bukti: ${r.evidenceName} • ${r.submittedAt}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        window.onload = function() {
+            applyLoggedInUserProfile();
+            renderOrdersTracking();
+            renderReturnsHistory();
+            fetchBooksFromBackend();
+        };
+
+        function fetchBooksFromBackend() {
+            allBooks = [...fallbackBooks];
+            books = [...allBooks];
+            renderProducts(books);
+
+            fetch(`${API_BASE_URL}/api/books`)
+                .then(res => res.json())
+                .then(result => {
+                    const dbData = result.books || result.data;
+                    if (result.success && dbData && dbData.length > 0) {
+                        const mapped = dbData.map(b => {
+                            const local = localCovers[b.title] || {};
+                            return {
+                                id: b.id,
+                                title: b.title,
+                                author: b.author,
+                                category: b.category,
+                                grade: b.grade,
+                                price: Number(b.price),
+                                rating: b.rating || 4.8,
+                                stock: b.stock !== undefined && b.stock !== null ? Number(b.stock) : 1,
+                                status: b.status || 'READY',
+                                img: local.img ? local.img : (b.img || 'https://via.placeholder.com/120x150?text=Cover'),
+                                desc: local.desc ? local.desc : (b.description || b.desc || 'Deskripsi lengkap belum tersedia.')
+                            };
+                        });
+
+                        allBooks = mapped.filter((v, i, a) => a.findIndex(t => t.title === v.title) === i);
+                        books = [...allBooks];
+                        renderProducts(books);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Menggunakan katalog lokal karena API backend belum terjangkau:', err);
+                });
+        }
+
+        function navigate(page) {
+            ['home', 'pdp', 'cart', 'orders', 'returns'].forEach(p => {
+                document.getElementById(`page-${p}`).classList.add('hidden');
+            });
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+
+            const navItems = document.querySelectorAll('.sub-nav .nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            const activeNav = document.getElementById(`nav-${page}`);
+            if (activeNav) activeNav.classList.add('active');
+
+            if (page === 'home') {
+                fetchBooksFromBackend();
+            } else if (page === 'orders') {
+                renderOrdersTracking(document.getElementById('awb-search-input')?.value || '');
+            } else if (page === 'returns') {
+                renderReturnsHistory();
+            }
+        }
+
+        function filterCat(cat, ev) {
+            const btns = document.querySelectorAll('.cat-filter-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            const targetBtn = (ev && ev.currentTarget) || (window.event && window.event.target);
+            if (targetBtn) targetBtn.classList.add('active');
+
+            document.getElementById('global-search').value = '';
+
+            if (cat === 'All') {
+                books = [...allBooks];
+            } else {
+                books = allBooks.filter(b => b.category && b.category.toLowerCase() === cat.toLowerCase());
+            }
+            renderProducts(books);
+        }
+
+        function handleSearch(query) {
+            const q = query.toLowerCase().trim();
+            
+            if (q === '') {
+                books = [...allBooks];
+            } else {
+                books = allBooks.filter(b => 
+                    (b.title && b.title.toLowerCase().includes(q)) || 
+                    (b.author && b.author.toLowerCase().includes(q)) || 
+                    (b.category && b.category.toLowerCase().includes(q))
+                );
+            }
+            renderProducts(books);
+        }
+
+        function renderProducts(list) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            if (list.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--litera-gray); padding: 3rem;">Buku yang Anda cari tidak ditemukan.</p>';
+                return;
+            }
+            list.forEach(b => {
+                const soldOut = isBookSoldOut(b);
+                grid.innerHTML += `
+                    <div class="product-card ${soldOut ? 'is-sold-out' : ''}">
+                        <div>
+                            <div class="product-img-wrapper" onclick="openPdp('${b.id}')">
+                                <img src="${b.img}" alt="${b.title}" onerror="this.src='https://via.placeholder.com/120x150?text=Cover'">
+                                ${soldOut ? `
+                                    <div class="sold-out-overlay">
+                                        <span class="sold-out-badge">SOLD OUT</span>
+                                    </div>
+                                ` : ''}
+                                <span class="badge-cat">${b.category}</span>
+                                <span class="badge-grade">${b.grade}</span>
+                            </div>
+                            <div class="product-info">
+                                <h3 onclick="openPdp('${b.id}')" class="product-title">${b.title}</h3>
+                                <p class="product-author">${b.author}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                                    <span class="product-price" style="${soldOut ? 'color: #9ca3af; text-decoration: line-through;' : ''}">Rp ${b.price.toLocaleString('id-ID')}</span>
+                                    <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;"><i class="fa-solid fa-star"></i> ${b.rating}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-action">
+                            ${soldOut
+                                ? `<button disabled class="btn-sold-out">Sold Out (Terjual)</button>`
+                                : `<button onclick="addToCart('${b.id}')" class="btn-secondary">+ Keranjang</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openPdp(id) {
+            selectedPdp = allBooks.find(b => String(b.id) === String(id));
+            if (!selectedPdp) return;
+
+            const soldOut = isBookSoldOut(selectedPdp);
+            const pdpImg = document.getElementById('pdp-img');
+            pdpImg.src = selectedPdp.img;
+            pdpImg.style.filter = soldOut ? 'grayscale(60%)' : 'none';
+            pdpImg.style.opacity = soldOut ? '0.65' : '1';
+
+            document.getElementById('pdp-sold-out-overlay').style.display = soldOut ? 'flex' : 'none';
+            document.getElementById('pdp-status-badge').style.display = soldOut ? 'inline-block' : 'none';
+
+            document.getElementById('pdp-title').innerText = selectedPdp.title;
+            document.getElementById('pdp-author').innerText = selectedPdp.author;
+            document.getElementById('pdp-category').innerText = selectedPdp.category;
+            document.getElementById('pdp-grade').innerText = selectedPdp.grade;
+            document.getElementById('pdp-price').innerText = `Rp ${selectedPdp.price.toLocaleString('id-ID')}`;
+            document.getElementById('pdp-desc').innerText = selectedPdp.desc;
+
+            const btnPdp = document.getElementById('btn-pdp-add-cart');
+            if (soldOut) {
+                btnPdp.disabled = true;
+                btnPdp.style.backgroundColor = '#9ca3af';
+                btnPdp.style.cursor = 'not-allowed';
+                btnPdp.innerHTML = '<i class="fa-solid fa-ban"></i><span>Sold Out (Buku Sudah Terjual)</span>';
+            } else {
+                btnPdp.disabled = false;
+                btnPdp.style.backgroundColor = '';
+                btnPdp.style.cursor = 'pointer';
+                btnPdp.innerHTML = '<i class="fa-solid fa-cart-plus"></i><span>Tambah ke Keranjang</span>';
+            }
+
+            navigate('pdp');
+        }
+
+        function addToCart(id) {
+            const item = allBooks.find(b => String(b.id) === String(id));
+            if (!item) return;
+
+            if (isBookSoldOut(item)) {
+                alert(`Maaf, buku "${item.title}" sudah Sold Out (Terjual).`);
+                return;
+            }
+
+            const alreadyInCart = cart.some(c => String(c.id) === String(item.id));
+            if (alreadyInCart && Number(item.stock) <= 1) {
+                alert(`Buku "${item.title}" hanya tersedia 1 eksemplar dan sudah ada di keranjangmu.`);
+                return;
+            }
+
+            cart.push(item);
+            document.getElementById('cart-badge').innerText = cart.length;
+            updateCartSummary();
+            alert(`"${item.title}" ditambahkan ke keranjang!`);
+        }
+
+        function addCurrentPdpToCart() {
+            if (selectedPdp) {
+                addToCart(selectedPdp.id);
+            }
+        }
+
+        function addBundleToCart() {
+            const availableBooks = allBooks.filter(b => !isBookSoldOut(b));
+            if (availableBooks.length >= 3) {
+                addToCart(availableBooks[0].id);
+                addToCart(availableBooks[1].id);
+                addToCart(availableBooks[2].id);
+                navigate('cart');
+            } else {
+                alert("Maaf, stok buku untuk paket bundling sedang tidak mencukupi (sebagian sudah Sold Out).");
+            }
+        }
+
+        function updateCartSummary() {
+            const container = document.getElementById('cart-summary-items');
+            container.innerHTML = '';
+            let subtotal = 0;
+            cart.forEach(c => {
+                subtotal += c.price;
+                container.innerHTML += `<div class="summary-row"><span>${c.title}</span><span style="font-weight:700;">Rp ${c.price.toLocaleString('id-ID')}</span></div>`;
+            });
+            document.getElementById('subtotal-val').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            calculateShipping();
+        }
+
+        function calculateShipping() {
+            const region = document.getElementById('cust-region').value;
+            const courier = document.querySelector('input[name="courier"]:checked').value;
+            let ongkir = 8000;
+            if (courier === 'PICKUP') ongkir = 0;
+            else if (courier === 'JNE') ongkir = 10000;
+            if (region === 'Gowa' || region === 'Maros') ongkir += 2000;
+
+            document.getElementById('ongkir-val').innerText = `Rp ${ongkir.toLocaleString('id-ID')}`;
+            let subtotal = cart.reduce((acc, curr) => acc + curr.price, 0);
+            document.getElementById('total-val').innerText = `Rp ${(subtotal + ongkir).toLocaleString('id-ID')}`;
+        }
+
+        async function processCheckout() {
+            if (cart.length === 0) {
+                alert("Keranjang masih kosong!");
+                return;
+            }
+
+            const name = document.getElementById('cust-name').value.trim();
+            const phone = document.getElementById('cust-phone').value.trim();
+            const region = document.getElementById('cust-region').value;
+            const address = document.getElementById('cust-address').value.trim();
+            
+            const courierElem = document.querySelector('input[name="courier"]:checked');
+            const paymentElem = document.querySelector('input[name="payment"]:checked');
+
+            if (!name || !phone || !address || !courierElem || !paymentElem) {
+                alert("Harap lengkapi data pengiriman dan pembayaran!");
+                return;
+            }
+
+            const courier = courierElem.value;
+            const payment = paymentElem.value;
+            
+            let subtotal = cart.reduce((acc, curr) => acc + Number(curr.price), 0);
+            let ongkir = courier === 'PICKUP' ? 0 : (courier === 'JNE' ? 10000 : 8000);
+            if (region === 'Gowa' || region === 'Maros') ongkir += 2000;
+            let totalPrice = subtotal + ongkir;
+
+            let purchasedItems = cart.map(item => item.title).join(" | ");
+            const cartSnapshot = [...cart];
+
+            const btnPay = document.getElementById('btn-checkout-pay');
+            const originalBtnHtml = btnPay.innerHTML;
+            btnPay.disabled = true;
+            btnPay.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Pembayaran...</span>';
+
+            try {
+                const checkoutRes = await fetch(`${API_BASE_URL}/api/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_name: name,
+                        customer_phone: phone,
+                        region: region,
+                        address: address,
+                        courier: courier,
+                        payment_method: payment,
+                        total_price: totalPrice,
+                        items: purchasedItems
+                    })
+                });
+                const checkoutData = await checkoutRes.json();
+
+                if (!checkoutData.success) {
+                    alert("Gagal menyimpan pesanan: " + (checkoutData.message || "Error server"));
+                    return;
+                }
+
+                const dbOrderId = checkoutData.order_id;
+                const orderId = `LITERA-${dbOrderId || Date.now()}-${Date.now()}`;
+                const createdOrder = createOrderRecord({
+                    dbOrderId: dbOrderId,
+                    orderId: orderId,
+                    customerName: name,
+                    customerPhone: phone,
+                    region: region,
+                    address: address,
+                    courier: courier,
+                    paymentMethod: payment,
+                    totalPrice: totalPrice,
+                    items: purchasedItems,
+                    paymentStatus: payment === 'COD' ? 'COD - Diproses' : 'Menunggu Pembayaran'
+                });
+
+                if (payment === 'COD') {
+                    markPurchasedBooksLocallySoldOut(cartSnapshot);
+                    alert("Pesanan COD berhasil dibuat & status buku di katalog otomatis menjadi SOLD OUT!");
+                    cart = [];
+                    document.getElementById('cart-badge').innerText = "0";
+                    navigate('home');
+                    return;
+                }
+
+                const tokenRes = await fetch(`${API_BASE_URL}/api/midtrans-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        totalAmount: totalPrice,
+                        customerName: name,
+                        customerPhone: phone,
+                        customerEmail: (getLoggedInUser() && getLoggedInUser().email) || 'pembeli@litera.app'
+                    })
+                });
+                const tokenData = await tokenRes.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                    alert("Gagal terhubung ke Midtrans: " + (tokenData.message || "Token tidak diterima"));
+                    return;
+                }
+
+                if (typeof window.snap === 'undefined') {
+                    alert("Script Midtrans Snap belum termuat. Periksa koneksi internet atau matikan AdBlocker/Tracking Prevention.");
+                    return;
+                }
+
+                window.snap.pay(tokenData.token, {
+                    onSuccess: async function() {
+                        // Konfirmasi ke backend agar stok di Supabase otomatis 0 (SOLD OUT)
+                        if (dbOrderId) {
+                            await fetch(`${API_BASE_URL}/api/orders/${dbOrderId}/paid`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            }).catch(err => console.error('Gagal update status bayar ke server:', err));
+                        }
+
+                        markPurchasedBooksLocallySoldOut(cartSnapshot);
+                        updateOrderPaymentStatus(createdOrder.invoice, 'Pembayaran Terverifikasi');
+                        alert("Pembayaran Midtrans Berhasil! Status buku di katalog otomatis berubah menjadi SOLD OUT.");
+                        cart = [];
+                        document.getElementById('cart-badge').innerText = "0";
+                        navigate('home');
+                    },
+                    onPending: function() {
+                        updateOrderPaymentStatus(createdOrder.invoice, 'Menunggu Pembayaran Midtrans');
+                        alert("Menunggu pembayaran Anda diselesaikan di Midtrans.");
+                        cart = [];
+                        document.getElementById('cart-badge').innerText = "0";
+                        navigate('orders');
+                    },
+                    onError: function() {
+                        updateOrderPaymentStatus(createdOrder.invoice, 'Pembayaran Gagal');
+                        alert("Pembayaran gagal atau dibatalkan.");
+                    },
+                    onClose: function() {
+                        alert("Jendela pembayaran ditutup sebelum transaksi selesai.");
+                    }
+                });
+            } catch (err) {
+                console.error("Checkout / Midtrans Error:", err);
+                alert("Gagal terhubung ke server backend (Pastikan node server.js berjalan atau API Vercel aktif).");
+            } finally {
+                btnPay.disabled = false;
+                btnPay.innerHTML = originalBtnHtml;
+            }
+        }
+
+        function handleReturnSubmit(e) {
+            e.preventDefault();
+            const invoiceInput = document.getElementById('return-invoice');
+            const reasonSelect = document.getElementById('return-reason');
+            const fileInput = document.getElementById('return-video');
+
+            const invoice = invoiceInput ? invoiceInput.value.trim() : '';
+            const reason = reasonSelect ? reasonSelect.value : '';
+            const fileName = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0].name : 'Bukti Terlampir';
+
+            if (!invoice) {
+                alert("Masukkan Nomor Invoice / Order ID terlebih dahulu.");
+                return;
+            }
+
+            const returnsList = getStoredReturns();
+            returnsList.unshift({
+                invoice: invoice,
+                reason: reason,
+                evidenceName: fileName,
+                status: 'Menunggu Verifikasi QC',
+                submittedAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA'
+            });
+            saveStoredReturns(returnsList);
+
+            updateOrderPaymentStatus(invoice, 'Diajukan Retur');
+            renderReturnsHistory();
+
+            if (e.target && typeof e.target.reset === 'function') {
+                e.target.reset();
+            }
+
+            alert("Pengajuan retur berhasil dikirim dan dicatat. Tim Operations LITERA akan memverifikasi bukti maks. 1x24 jam.");
+        }
+    </script>
+</body>
+</html>
