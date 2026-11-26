@@ -50,32 +50,7 @@
             opacity: 0.9;
         }
 
-        /* Profil Pengguna Login di Navbar */
-        .landing-user-profile {
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 999px;
-            transition: background-color 0.2s;
-        }
-        .landing-user-profile:hover {
-            background-color: var(--litera-surface, #f1f5f9);
-        }
-        .landing-user-profile img {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .landing-user-profile span {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--litera-dark, #1e293b);
-        }
-
-        /* Tampilan Buku Sold Out (Sama persis dengan Katalog) */
+        /* Tampilan Buku Sold Out (Sama dengan Katalog) */
         .product-card.is-sold-out .product-img-wrapper img {
             filter: grayscale(100%) brightness(0.75);
         }
@@ -226,17 +201,13 @@
                 <a href="#katalog-section" onclick="navigate('home')">Katalog</a>
                 <a href="#artikel">Artikel</a>
                 <a href="#tentang-kami">Tentang Kami</a>
-                <button onclick="handleAuthenticatedAction('Keranjang Belanja', '../Katalog/index.html')" class="icon-btn" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #334155; position: relative;">
+                <button onclick="promptGuestLogin('Keranjang Belanja')" class="icon-btn" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #334155; position: relative;">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-badge" class="badge" style="position: absolute; top: -6px; right: -8px; background: #2563eb; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
                 </button>
-                <div id="guest-auth-buttons" class="auth-nav-buttons">
-                    <a href="../login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
-                    <a href="../login/index.html?register=true" class="btn-guest-register">Daftar</a>
-                </div>
-                <div id="landing-user-profile" class="landing-user-profile" onclick="goToAccountDashboard()">
-                    <img id="landing-user-avatar" src="../foto/logo.jpeg" alt="Avatar">
-                    <span id="landing-user-name">Pengguna Litera</span>
+                <div class="auth-nav-buttons">
+                    <a href="/login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
+                    <a href="/login/index.html?register=true" class="btn-guest-register">Daftar</a>
                 </div>
             </div>
         </div>
@@ -263,7 +234,7 @@
                     <h2>Barter & Jual Buku <span>Mudah dan Aman</span></h2>
                     <p>Sistem verifikasi Quality Control (QC) fisik memastikan kondisi buku bekas perkuliahan tetap layak baca bagi pembeli berikutnya.</p>
                     <div class="hero-btns">
-                        <a href="javascript:void(0)" onclick="handleAuthenticatedAction('Titip Jual Buku', '../Dashboard Pengguna/index.html')" class="btn-primary"><i class="fa-solid fa-hand-holding-hand"></i> Ajukan Titip Jual</a>
+                        <a href="javascript:void(0)" onclick="promptGuestLogin('Titip Jual Buku')" class="btn-primary"><i class="fa-solid fa-hand-holding-hand"></i> Ajukan Titip Jual</a>
                     </div>
                 </div>
                 <div class="hero-image">
@@ -317,7 +288,7 @@
                         <span class="price-old" style="font-size: 0.75rem; color: #64748b; text-decoration: line-through;">Rp 150.000</span>
                         <span class="price-new" style="font-size: 1.125rem; font-weight: 800; color: #701D28; display: block;">Rp 120.000</span>
                     </div>
-                    <button onclick="handleAuthenticatedAction('Pembelian Paket Bundling', '../Katalog/index.html')" class="btn-dark" style="margin-top: 0.5rem; background: #111; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Beli Paket</button>
+                    <button onclick="promptGuestLogin('Pembelian Paket Bundling')" class="btn-dark" style="margin-top: 0.5rem; background: #111; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Beli Paket</button>
                 </div>
             </div>
 
@@ -367,7 +338,7 @@
                     </div>
 
                     <div style="padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                        <button id="pdp-add-btn" onclick="handleAuthenticatedAction('Tambah ke Keranjang', '../Katalog/index.html')" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem; background: #701D28; color: #fff; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                        <button id="pdp-add-btn" onclick="promptGuestLogin('Tambah ke Keranjang')" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem; background: #701D28; color: #fff; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fa-solid fa-cart-plus"></i> <span>Tambah ke Keranjang</span>
                         </button>
                     </div>
@@ -500,7 +471,7 @@
             </p>
             <div class="modal-actions">
                 <button onclick="closeGuestModal()" class="btn-modal-cancel">Nanti Saja</button>
-                <a href="../login/index.html" class="btn-modal-login">Masuk Sekarang</a>
+                <a href="/login/index.html" class="btn-modal-login">Masuk Sekarang</a>
             </div>
         </div>
     </div>
@@ -568,66 +539,6 @@
             return '';
         }
 
-        function getLoggedInUser() {
-            try {
-                const raw = localStorage.getItem('user');
-                return raw ? JSON.parse(raw) : null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function applyLandingUserProfile() {
-            const user = getLoggedInUser();
-            const guestButtons = document.getElementById('guest-auth-buttons');
-            const userProfile = document.getElementById('landing-user-profile');
-
-            if (!user) {
-                if (guestButtons) guestButtons.style.display = 'flex';
-                if (userProfile) userProfile.style.display = 'none';
-                return;
-            }
-
-            const displayName = (user.nama || user.name || user.username) || 'Pengguna Litera';
-            const customPhoto = user.foto || user.avatar || user.photo;
-            const initial = encodeURIComponent(displayName.trim().charAt(0).toUpperCase() || 'L');
-            const avatarSrc = customPhoto || `https://ui-avatars.com/api/?name=${initial}&background=7a1c24&color=ffffff&bold=true`;
-
-            if (guestButtons) guestButtons.style.display = 'none';
-            if (userProfile) userProfile.style.display = 'flex';
-
-            const nameEl = document.getElementById('landing-user-name');
-            const avatarEl = document.getElementById('landing-user-avatar');
-            if (nameEl) nameEl.textContent = displayName;
-            if (avatarEl) {
-                avatarEl.src = avatarSrc;
-                avatarEl.alt = displayName;
-            }
-        }
-
-        function goToAccountDashboard() {
-            const user = getLoggedInUser();
-            if (!user) {
-                window.location.href = '../login/index.html';
-                return;
-            }
-            const role = String(user.role || '').toLowerCase();
-            if (role === 'admin' || role === 'administrator') {
-                window.location.href = '../Dashboard Admin/index.html';
-            } else {
-                window.location.href = '../Dashboard Pengguna/index.html';
-            }
-        }
-
-        function handleAuthenticatedAction(featureName, targetUrl) {
-            const user = getLoggedInUser();
-            if (!user) {
-                promptGuestLogin(featureName);
-                return;
-            }
-            window.location.href = targetUrl;
-        }
-
         function isBookSoldOut(book) {
             const rawStock = book.stock !== undefined && book.stock !== null && book.stock !== ''
                 ? Number(book.stock)
@@ -691,7 +602,6 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            applyLandingUserProfile();
             updateSlider();
             startTimer();
             fetchBooksFromBackend();
@@ -884,7 +794,7 @@
                         <div class="product-action">
                             ${soldOut
                                 ? '<button disabled class="btn-sold-out">Sold Out (Terjual)</button>'
-                                : '<button onclick="handleAuthenticatedAction(\'Tambah ke Keranjang\', \'../Katalog/index.html\')" class="btn-secondary">+ Keranjang</button>'
+                                : '<button onclick="promptGuestLogin(\'Tambah ke Keranjang\')" class="btn-secondary">+ Keranjang</button>'
                             }
                         </div>
                     </div>
