@@ -16,8 +16,11 @@
       "dest": "/backend/server.js"
     },
     {
-      "src": "/",
-      "dest": "/Landing Pages/index.html"
+      "src": "^/$",
+      "status": 302,
+      "headers": {
+        "Location": "/Landing%20Pages/index.html"
+      }
     },
     {
       "handle": "filesystem"
