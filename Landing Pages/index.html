@@ -15,6 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="halamanpages.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/website_litera-main/theme.js"></script>
 
     <style>
         /* Modifikasi Tambahan Integrasi Guest & Modal */
@@ -201,13 +202,16 @@
                 <a href="#katalog-section" onclick="navigate('home')">Katalog</a>
                 <a href="#artikel">Artikel</a>
                 <a href="#tentang-kami">Tentang Kami</a>
+                <button type="button" onclick="toggleLiteraTheme()" class="litera-theme-toggle" title="Ganti Tema Gelap / Terang">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
                 <button onclick="promptGuestLogin('Keranjang Belanja')" class="icon-btn" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #334155; position: relative;">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-badge" class="badge" style="position: absolute; top: -6px; right: -8px; background: #2563eb; color: #fff; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
                 </button>
                 <div class="auth-nav-buttons">
-                    <a href="/login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
-                    <a href="/login/index.html?register=true" class="btn-guest-register">Daftar</a>
+                    <a href="../login/index.html" class="btn-guest-login"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
+                    <a href="../login/index.html?register=true" class="btn-guest-register">Daftar</a>
                 </div>
             </div>
         </div>
@@ -499,10 +503,10 @@
             <div class="footer-nav-col">
                 <h4>PRODUCT</h4>
                 <ul>
-                    <li><a href="../Katalog/index.html">Katalog Buku</a></li>
-                    <li><a href="../Katalog/index.html">Sirkulasi Buku</a></li>
-                    <li><a href="../Katalog/index.html">Barter Buku</a></li>
-                    <li><a href="../Katalog/index.html">Paket Akademik</a></li>
+                    <li><a href="../login/index.html">Katalog Buku</a></li>
+                    <li><a href="../login/index.html">Sirkulasi Buku</a></li>
+                    <li><a href="../login/index.html">Barter Buku</a></li>
+                    <li><a href="../login/index.html">Paket Akademik</a></li>
                 </ul>
             </div>
 
@@ -856,6 +860,6 @@
         function closeGuestModal() {
             document.getElementById('guest-auth-modal').classList.remove('active');
         }
-    </script>
+    </script>    
 </body>
 </html>

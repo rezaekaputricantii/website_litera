@@ -20,15 +20,19 @@ body {
     background-color: var(--litera-light);
     color: var(--litera-dark);
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-/* NAVBAR */
+/* =========================================
+   NAVBAR
+   ========================================= */
 header {
     background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 1000;
+    width: 100%;
 }
 
 .nav-container {
@@ -38,6 +42,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    min-width: 0;
 }
 
 .brand {
@@ -45,6 +51,8 @@ header {
     align-items: center;
     gap: 12px;
     cursor: pointer;
+    min-width: 0;
+    flex-shrink: 0;
 }
 
 .brand img {
@@ -52,6 +60,11 @@ header {
     width: auto;
     object-fit: contain;
     border-radius: 6px;
+    display: block;
+}
+
+.brand-text {
+    min-width: 0;
 }
 
 .brand-text h1 {
@@ -59,18 +72,21 @@ header {
     font-weight: 800;
     color: var(--litera-red);
     letter-spacing: 0.5px;
+    line-height: 1.2;
 }
 
 .brand-text span {
     font-size: 0.7rem;
     color: var(--litera-gray);
     font-weight: 600;
+    display: block;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
     gap: 24px;
+    min-width: 0;
 }
 
 .nav-links a {
@@ -78,6 +94,7 @@ header {
     color: var(--litera-dark);
     font-weight: 600;
     font-size: 0.9rem;
+    white-space: nowrap;
     transition: color 0.2s;
 }
 
@@ -91,6 +108,8 @@ header {
     padding: 0.5rem 1.25rem;
     border-radius: 8px;
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: opacity 0.2s;
 }
 
@@ -98,14 +117,16 @@ header {
     opacity: 0.9;
 }
 
-/* HERO SLIDER SECTION */
+/* =========================================
+   HERO SLIDER SECTION
+   ========================================= */
 .hero-slider-wrapper {
     position: relative;
     max-width: 1200px;
     margin: 2rem auto;
     overflow: hidden;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .hero-slider {
@@ -122,6 +143,11 @@ header {
     align-items: center;
     padding: 4rem 3rem;
     background: #ffffff;
+    min-width: 0;
+}
+
+.hero-content {
+    min-width: 0;
 }
 
 .hero-content h2 {
@@ -144,6 +170,7 @@ header {
 
 .hero-btns {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
 }
 
@@ -158,6 +185,16 @@ header {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+}
+
+.hero-image {
+    min-width: 0;
 }
 
 .hero-image img {
@@ -165,6 +202,7 @@ header {
     height: 320px;
     object-fit: cover;
     border-radius: 12px;
+    display: block;
 }
 
 .slider-dots {
@@ -179,7 +217,7 @@ header {
 .dot {
     width: 10px;
     height: 10px;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 50%;
     cursor: pointer;
     transition: background 0.3s, width 0.3s;
@@ -191,7 +229,9 @@ header {
     border-radius: 12px;
 }
 
-/* SEKSI ARTIKEL */
+/* =========================================
+   SEKSI ARTIKEL
+   ========================================= */
 .articles-section {
     padding: 4rem 2rem;
     background: #ffffff;
@@ -200,6 +240,7 @@ header {
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    min-width: 0;
 }
 
 .section-title {
@@ -220,7 +261,7 @@ header {
 
 .articles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
     gap: 30px;
     margin-top: 2rem;
 }
@@ -235,6 +276,7 @@ header {
     position: relative;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .article-card:hover {
@@ -262,6 +304,7 @@ header {
     width: 100%;
     height: 180px;
     object-fit: cover;
+    display: block;
 }
 
 .article-content {
@@ -319,7 +362,9 @@ header {
     color: #4c131b;
 }
 
-/* ================= TENTANG KAMI LANDSCAPE STYLES ================= */
+/* =========================================
+   TENTANG KAMI LANDSCAPE STYLES
+   ========================================= */
 .about-section {
     padding: 4rem 2rem;
     background: #f8fafc;
@@ -358,7 +403,7 @@ header {
 /* GRID 3 KOLOM LANDSCAPE KARTU FITUR */
 .about-features-landscape {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
     margin-bottom: 2rem;
 }
@@ -372,6 +417,7 @@ header {
     transition: transform 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .about-card:hover {
@@ -434,7 +480,9 @@ header {
     background-color: #cbd5e1;
 }
 
-/* FOOTER */
+/* =========================================
+   FOOTER
+   ========================================= */
 footer {
     background: var(--litera-dark);
     color: #ffffff;
@@ -447,33 +495,6 @@ footer p {
     color: #94a3b8;
 }
 
-/* MEDIA QUERIES (RESPONSIF SMANPHONE & TABLET) */
-@media (max-width: 900px) {
-    .about-features-landscape {
-        grid-template-columns: 1fr;
-    }
-    
-    .about-stats-bar {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .stat-divider {
-        width: 60%;
-        height: 1px;
-    }
-}
-
-@media (max-width: 768px) {
-    .slide {
-        grid-template-columns: 1fr;
-        text-align: center;
-        padding: 2rem 1.5rem;
-    }
-    .hero-btns {
-        justify-content: center;
-    }
-}
 /* =========================================
    FOOTER DINAMIS LITERA HUB
    ========================================= */
@@ -483,6 +504,7 @@ footer p {
     padding: 3.5rem 2rem 2.5rem;
     margin-top: 3rem;
     font-family: inherit;
+    text-align: left;
 }
 
 .litera-footer-container {
@@ -507,6 +529,7 @@ footer p {
     border-radius: 50%;
     object-fit: cover;
     background: #ffffff;
+    flex-shrink: 0;
 }
 
 .footer-brand-title {
@@ -530,6 +553,7 @@ footer p {
 
 .footer-social-links {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.65rem;
 }
 
@@ -581,9 +605,181 @@ footer p {
     color: #ffffff;
 }
 
+/* =========================================
+   MEDIA QUERIES (TABLET & SMARTPHONE)
+   ========================================= */
+@media (max-width: 900px) {
+    .nav-container {
+        padding: 1rem 1.5rem;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .slide {
+        padding: 3rem 2rem;
+        gap: 28px;
+    }
+
+    .hero-content h2 {
+        font-size: 2rem;
+    }
+
+    .about-features-landscape {
+        grid-template-columns: 1fr;
+    }
+
+    .about-stats-bar {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .stat-divider {
+        width: 60%;
+        height: 1px;
+    }
+
+    .litera-footer-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .nav-container {
+        flex-wrap: wrap;
+        padding: 1rem 1.25rem 0.9rem;
+        gap: 0.75rem 1rem;
+    }
+
+    .brand img {
+        height: 36px;
+    }
+
+    .brand-text h1 {
+        font-size: 1.05rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 14px;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-links a {
+        font-size: 0.82rem;
+    }
+
+    .btn-login {
+        padding: 0.45rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .hero-slider-wrapper {
+        margin: 1.25rem 1rem 1.5rem;
+        border-radius: 14px;
+    }
+
+    .slide {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 2.25rem 1.25rem 3rem;
+        gap: 20px;
+    }
+
+    .hero-content h2 {
+        font-size: 1.65rem;
+    }
+
+    .hero-content p {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-btns {
+        justify-content: center;
+    }
+
+    .hero-image img {
+        height: 220px;
+    }
+
+    .articles-section,
+    .about-section {
+        padding: 2.75rem 1.25rem;
+    }
+
+    .section-title h3 {
+        font-size: 1.55rem;
+    }
+
+    .about-hero-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .about-hero-card h4 {
+        font-size: 1.2rem;
+    }
+
+    .litera-main-footer {
+        padding: 2.5rem 1.25rem 2rem;
+        margin-top: 2rem;
+    }
+
     .litera-footer-container {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 1.75rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .nav-container {
+        padding: 1rem 1rem 0.85rem;
+    }
+
+    .brand {
+        gap: 8px;
+    }
+
+    .brand img {
+        height: 32px;
+    }
+
+    .brand-text h1 {
+        font-size: 0.95rem;
+    }
+
+    .brand-text span {
+        font-size: 0.62rem;
+    }
+
+    .hero-slider-wrapper {
+        margin: 1rem 0.85rem 1.25rem;
+    }
+
+    .slide {
+        padding: 1.85rem 1rem 2.75rem;
+    }
+
+    .hero-content h2 {
+        font-size: 1.4rem;
+    }
+
+    .hero-image img {
+        height: 190px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .article-content,
+    .about-card {
+        padding: 1.25rem;
     }
 }

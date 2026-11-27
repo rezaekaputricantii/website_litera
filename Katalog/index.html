@@ -14,6 +14,7 @@
     
     <!-- Midtrans Snap Sandbox JS -->
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-ynHTTuKeGHRedSFJ"></script>
+    <script src="/website_litera-main/theme.js"></script>
 
     <style>
         .product-img-wrapper {
@@ -75,6 +76,48 @@
             font-size: 0.8rem;
             cursor: not-allowed;
         }
+        .consign-grid {
+            display: grid;
+            grid-template-columns: 1.45fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .consign-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .photo-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .photo-upload-box:hover {
+            border-color: var(--litera-red, #701D28);
+            background-color: #fef2f2;
+        }
+        .photo-preview-wrapper {
+            margin-top: 0.75rem;
+            display: none;
+            align-items: center;
+            gap: 0.85rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.6rem;
+            text-align: left;
+        }
+        .photo-preview-wrapper img {
+            width: 64px;
+            height: 82px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
     </style>
 </head>
 <body>
@@ -101,6 +144,9 @@
             </div>
 
             <div class="header-actions">
+                <button type="button" onclick="toggleLiteraTheme()" class="litera-theme-toggle" title="Ganti Tema Gelap / Terang">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
                 <button onclick="navigate('cart')" class="icon-btn">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-badge" class="badge">0</span>
@@ -116,8 +162,9 @@
 
     <!-- SUB NAVIGASI -->
     <nav class="sub-nav">
-        <div class="container sub-nav-content">
+        <div class="container sub-nav-content" style="display: flex; gap: 1rem; align-items: center;">
             <button onclick="navigate('home')" id="nav-home" class="nav-item active">Katalog & Promo</button>
+            <button onclick="navigate('consign')" id="nav-consign" class="nav-item">Ajukan Titip Jual</button>
         </div>
     </nav>
 
@@ -371,6 +418,97 @@
             <div id="returns-history-container" style="margin-top: 1.5rem;"></div>
         </div>
 
+        <!-- PAGE 6: AJUKAN TITIP JUAL (TERHUBUNG KE MIDTRANS HARGA TETAP RP 10.000 + UNGGAH FOTO) -->
+        <div id="page-consign" class="hidden checkout-container">
+            <div class="hero-banner" style="margin-bottom: 1.5rem;">
+                <div class="hero-body">
+                    <span class="badge-tag">Consignment Mahasiswa Makassar, Gowa & Maros</span>
+                    <h1 class="hero-title">Ajukan Titip Jual Buku Bekas Berkualitas</h1>
+                    <p class="hero-desc">Biaya administrasi & verifikasi Quality Control (QC) fisik tetap <strong>Rp 10.000</strong> via Midtrans, berapa pun harga jual buku yang kamu tentukan.</p>
+                </div>
+            </div>
+
+            <form id="form-consign" onsubmit="processConsignmentCheckout(event)" class="consign-grid">
+                <div class="form-card">
+                    <h3 class="form-card-title">
+                        <i class="fa-solid fa-book-medical"></i><span>Detail Buku yang Diajukan</span>
+                    </h3>
+                    <div class="form-grid">
+                        <input type="text" id="consign-title" required placeholder="Judul Lengkap Buku *" class="form-input full-width">
+                        <input type="text" id="consign-author" required placeholder="Nama Penulis *" class="form-input">
+                        <select id="consign-category" required class="form-select">
+                            <option value="Fiksi">Novel & Fiksi</option>
+                            <option value="Filsafat">Filsafat & Self-Improvement</option>
+                            <option value="Agama">Agama & Studi Islam</option>
+                            <option value="Bisnis">Bisnis & Manajemen</option>
+                        </select>
+                        <select id="consign-grade" required class="form-select">
+                            <option value="Grade A (Mulus)">Grade A (Mulus)</option>
+                            <option value="Grade B+ (Layak Baca)">Grade B+ (Layak Baca)</option>
+                            <option value="Grade B (Layak)">Grade B (Layak)</option>
+                        </select>
+                        <input type="number" id="consign-desired-price" required min="15000" step="1000" placeholder="Harga Jual Buku yang Diinginkan (Rp) *" class="form-input">
+                        <input type="text" id="consign-seller-name" required placeholder="Nama Lengkap Penjual *" class="form-input">
+                        <input type="text" id="consign-phone" required placeholder="No. WhatsApp Aktif *" class="form-input">
+                        <input type="text" id="consign-location" required placeholder="Lokasi COD / Penjemputan (Contoh: Kampus UNM / Sudiang) *" class="form-input full-width">
+
+                        <!-- UNGGAH FOTO BUKU -->
+                        <div class="full-width">
+                            <label style="font-size: 0.78rem; font-weight: 700; display: block; margin-bottom: 0.4rem; color: var(--litera-dark);">
+                                Unggah Foto Sampul / Kondisi Fisik Buku *
+                            </label>
+                            <input type="file" id="consign-photo" accept="image/*" required onchange="handleConsignPhotoPreview(event)" style="display: none;">
+                            <div class="photo-upload-box" onclick="document.getElementById('consign-photo').click()">
+                                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--litera-red, #701D28); margin-bottom: 0.35rem;"></i>
+                                <p style="font-size: 0.8rem; font-weight: 700; margin: 0; color: #1e293b;">Klik untuk memilih foto buku dari perangkat</p>
+                                <span style="font-size: 0.7rem; color: #64748b;">Format JPG, PNG, atau WEBP (Maks. 5 MB)</span>
+                            </div>
+                            <div id="consign-photo-preview-box" class="photo-preview-wrapper">
+                                <img id="consign-photo-preview-img" src="" alt="Preview Foto Buku">
+                                <div style="flex: 1; min-width: 0;">
+                                    <p id="consign-photo-name" style="font-size: 0.78rem; font-weight: 700; margin: 0 0 0.25rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></p>
+                                    <span id="consign-photo-size" style="font-size: 0.7rem; color: #64748b; display: block; margin-bottom: 0.4rem;"></span>
+                                    <button type="button" onclick="removeConsignPhoto()" style="background: #fee2e2; color: #b91c1c; border: none; padding: 0.25rem 0.6rem; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
+                                        <i class="fa-solid fa-trash"></i> Hapus Foto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <textarea id="consign-notes" rows="2" placeholder="Catatan kondisi fisik buku (Opsional)" class="form-textarea full-width"></textarea>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <h3 class="summary-title">Rincian Pembayaran Titip Jual</h3>
+                    <div class="summary-items">
+                        <div class="summary-row">
+                            <span>Biaya Admin & Verifikasi QC</span>
+                            <span style="font-weight: 700;">Rp 10.000</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Biaya Listing Katalog LITERA</span>
+                            <span style="font-weight: 700; color: #16a34a;">GRATIS</span>
+                        </div>
+                    </div>
+                    <div class="summary-totals">
+                        <div class="total-final">
+                            <span>Total Bayar Midtrans</span>
+                            <span style="color: var(--litera-red);">Rp 10.000</span>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-consign-pay" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
+                        <i class="fa-solid fa-lock"></i><span>Bayar Rp 10.000 & Ajukan (Midtrans)</span>
+                    </button>
+                    <p style="margin-top: 0.75rem; font-size: 0.72rem; color: var(--litera-gray); line-height: 1.5;">
+                        Nominal pembayaran via Midtrans dikunci tetap sebesar <strong>Rp 10.000</strong> untuk biaya administrasi & verifikasi QC fisik.
+                    </p>
+                </div>
+            </form>
+
+            <div id="consign-history-container" style="margin-top: 1.5rem;"></div>
+        </div>
+
     </main>
 
     <!-- JAVASCRIPT LOGIC FRONTEND, BACKEND & MIDTRANS SNAP -->
@@ -386,6 +524,7 @@
         let cart = [];
         let selectedPdp = null;
         let selectedOrderInvoice = '';
+        let consignPhotoDataUrl = '';
 
         const fallbackBooks = [
             {
@@ -526,7 +665,6 @@
             return stockEmpty || statusSoldOut;
         }
 
-        // Langsung ubah status buku di memori tampilan menjadi SOLD OUT setelah dibayar
         function markPurchasedBooksLocallySoldOut(purchasedCart) {
             const purchasedIds = purchasedCart.map(item => String(item.id));
             allBooks = allBooks.map(b => {
@@ -559,6 +697,7 @@
             const nameEl = document.getElementById('header-user-name');
             const avatarEl = document.getElementById('header-user-avatar');
             const custNameEl = document.getElementById('cust-name');
+            const consignNameEl = document.getElementById('consign-seller-name');
 
             if (nameEl) {
                 nameEl.textContent = displayName;
@@ -578,6 +717,44 @@
             if (custNameEl && !custNameEl.value.trim()) {
                 custNameEl.value = displayName !== 'Pengguna Litera' ? displayName : '';
             }
+            if (consignNameEl && !consignNameEl.value.trim()) {
+                consignNameEl.value = displayName !== 'Pengguna Litera' ? displayName : '';
+            }
+        }
+
+        function handleConsignPhotoPreview(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Harap pilih file gambar (JPG, PNG, atau WEBP).');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran foto maksimal 5 MB.');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                consignPhotoDataUrl = e.target.result;
+                document.getElementById('consign-photo-preview-img').src = consignPhotoDataUrl;
+                document.getElementById('consign-photo-name').textContent = file.name;
+                document.getElementById('consign-photo-size').textContent = `${(file.size / 1024).toFixed(0)} KB`;
+                document.getElementById('consign-photo-preview-box').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeConsignPhoto() {
+            consignPhotoDataUrl = '';
+            const input = document.getElementById('consign-photo');
+            if (input) input.value = '';
+            const previewBox = document.getElementById('consign-photo-preview-box');
+            if (previewBox) previewBox.style.display = 'none';
         }
 
         function getStoredOrders() {
@@ -604,6 +781,47 @@
 
         function saveStoredReturns(returnsList) {
             localStorage.setItem('litera_returns', JSON.stringify(returnsList));
+        }
+
+        function getStoredConsignments() {
+            try {
+                const raw = localStorage.getItem('litera_consignments');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveStoredConsignments(list) {
+            localStorage.setItem('litera_consignments', JSON.stringify(list));
+        }
+
+        function renderConsignmentsHistory() {
+            const container = document.getElementById('consign-history-container');
+            if (!container) return;
+
+            const list = getStoredConsignments();
+            if (list.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">Riwayat Pengajuan Titip Jual Anda</h3>
+                ${list.map(item => `
+                    <div class="form-card" style="margin-bottom: 0.75rem; font-size: 0.78rem; display: flex; gap: 0.9rem; align-items: center;">
+                        ${item.photo ? `<img src="${item.photo}" alt="${item.title}" style="width: 54px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0;">` : ''}
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                                <strong>${item.title} (${item.author})</strong>
+                                <span class="badge-tag">${item.status}</span>
+                            </div>
+                            <p style="margin-top: 0.35rem; color: var(--litera-dark);">Kategori: ${item.category} • Kondisi: ${item.grade} • Harga Jual: Rp ${Number(item.desiredPrice).toLocaleString('id-ID')}</p>
+                            <p style="margin-top: 0.2rem; color: var(--litera-gray);">Order ID: ${item.orderId} • Biaya Admin: Rp 10.000 • ${item.submittedAt}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
         }
 
         function createOrderRecord({ dbOrderId, orderId, customerName, customerPhone, region, address, courier, paymentMethod, totalPrice, items, paymentStatus }) {
@@ -772,6 +990,7 @@
             applyLoggedInUserProfile();
             renderOrdersTracking();
             renderReturnsHistory();
+            renderConsignmentsHistory();
             fetchBooksFromBackend();
         };
 
@@ -813,10 +1032,12 @@
         }
 
         function navigate(page) {
-            ['home', 'pdp', 'cart', 'orders', 'returns'].forEach(p => {
-                document.getElementById(`page-${p}`).classList.add('hidden');
+            ['home', 'pdp', 'cart', 'orders', 'returns', 'consign'].forEach(p => {
+                const el = document.getElementById(`page-${p}`);
+                if (el) el.classList.add('hidden');
             });
-            document.getElementById(`page-${page}`).classList.remove('hidden');
+            const targetEl = document.getElementById(`page-${page}`);
+            if (targetEl) targetEl.classList.remove('hidden');
 
             const navItems = document.querySelectorAll('.sub-nav .nav-item');
             navItems.forEach(item => item.classList.remove('active'));
@@ -829,6 +1050,8 @@
                 renderOrdersTracking(document.getElementById('awb-search-input')?.value || '');
             } else if (page === 'returns') {
                 renderReturnsHistory();
+            } else if (page === 'consign') {
+                renderConsignmentsHistory();
             }
         }
 
@@ -1112,7 +1335,6 @@
 
                 window.snap.pay(tokenData.token, {
                     onSuccess: async function() {
-                        // Konfirmasi ke backend agar stok di Supabase otomatis 0 (SOLD OUT)
                         if (dbOrderId) {
                             await fetch(`${API_BASE_URL}/api/orders/${dbOrderId}/paid`, {
                                 method: 'POST',
@@ -1145,6 +1367,121 @@
             } catch (err) {
                 console.error("Checkout / Midtrans Error:", err);
                 alert("Gagal terhubung ke server backend (Pastikan node server.js berjalan atau API Vercel aktif).");
+            } finally {
+                btnPay.disabled = false;
+                btnPay.innerHTML = originalBtnHtml;
+            }
+        }
+
+        // PROSES AJUKAN TITIP JUAL (MIDTRANS HARGA TETAP RP 10.000 + FOTO BUKU)
+        async function processConsignmentCheckout(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('consign-title').value.trim();
+            const author = document.getElementById('consign-author').value.trim();
+            const category = document.getElementById('consign-category').value;
+            const grade = document.getElementById('consign-grade').value;
+            const desiredPrice = Number(document.getElementById('consign-desired-price').value);
+            const sellerName = document.getElementById('consign-seller-name').value.trim();
+            const phone = document.getElementById('consign-phone').value.trim();
+            const location = document.getElementById('consign-location').value.trim();
+            const notes = document.getElementById('consign-notes').value.trim();
+            const photoFile = document.getElementById('consign-photo').files[0];
+
+            if (!title || !author || !desiredPrice || !sellerName || !phone || !location) {
+                alert("Harap lengkapi seluruh data buku, penjual, dan lokasi!");
+                return;
+            }
+
+            if (!photoFile && !consignPhotoDataUrl) {
+                alert("Harap unggah foto sampul atau kondisi fisik buku terlebih dahulu!");
+                return;
+            }
+
+            const FIXED_CONSIGNMENT_FEE = 10000;
+            const orderId = `TITIP-LITERA-${Date.now()}`;
+            const btnPay = document.getElementById('btn-consign-pay');
+            const originalBtnHtml = btnPay.innerHTML;
+            btnPay.disabled = true;
+            btnPay.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Midtrans...</span>';
+
+            try {
+                await fetch(`${API_BASE_URL}/api/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_name: sellerName,
+                        customer_phone: phone,
+                        region: 'Makassar',
+                        address: location,
+                        courier: 'TITIP_JUAL',
+                        payment_method: 'QRIS',
+                        total_price: FIXED_CONSIGNMENT_FEE,
+                        items: `[TITIP JUAL] ${title} - ${author} (${grade}) | Harga Jual: Rp ${desiredPrice.toLocaleString('id-ID')} | Foto: ${photoFile ? photoFile.name : 'Terlampir'}${notes ? ' | Catatan: ' + notes : ''}`
+                    })
+                }).catch(() => {});
+
+                const tokenRes = await fetch(`${API_BASE_URL}/api/midtrans-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        totalAmount: FIXED_CONSIGNMENT_FEE,
+                        customerName: sellerName,
+                        customerPhone: phone,
+                        customerEmail: (getLoggedInUser() && getLoggedInUser().email) || 'penjual@litera.app'
+                    })
+                });
+                const tokenData = await tokenRes.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                    alert("Gagal terhubung ke Midtrans: " + (tokenData.message || "Token tidak diterima"));
+                    return;
+                }
+
+                if (typeof window.snap === 'undefined') {
+                    alert("Script Midtrans Snap belum termuat.");
+                    return;
+                }
+
+                window.snap.pay(tokenData.token, {
+                    onSuccess: function() {
+                        const list = getStoredConsignments();
+                        list.unshift({
+                            orderId,
+                            title,
+                            author,
+                            category,
+                            grade,
+                            desiredPrice,
+                            sellerName,
+                            phone,
+                            location,
+                            notes,
+                            photo: consignPhotoDataUrl,
+                            status: 'Lunas Rp 10.000 (Menunggu QC)',
+                            submittedAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' }) + ' WITA'
+                        });
+                        saveStoredConsignments(list);
+                        renderConsignmentsHistory();
+                        document.getElementById('form-consign').reset();
+                        removeConsignPhoto();
+                        applyLoggedInUserProfile();
+                        alert("Pembayaran Rp 10.000 Berhasil! Pengajuan titip jual & foto buku kamu telah dicatat.");
+                    },
+                    onPending: function() {
+                        alert("Menunggu pembayaran Rp 10.000 diselesaikan di Midtrans.");
+                    },
+                    onError: function() {
+                        alert("Pembayaran gagal atau dibatalkan.");
+                    },
+                    onClose: function() {
+                        alert("Jendela pembayaran ditutup sebelum transaksi selesai.");
+                    }
+                });
+            } catch (err) {
+                console.error("Consignment Midtrans Error:", err);
+                alert("Gagal terhubung ke server backend.");
             } finally {
                 btnPay.disabled = false;
                 btnPay.innerHTML = originalBtnHtml;

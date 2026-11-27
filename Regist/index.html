@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="register.css">
     <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../theme.js"></script>
 </head>
 <body>
 
@@ -157,3 +158,110 @@
     });
   }
 </script>
+<!-- INTEGRASI LOGIN GOOGLE & APPLE VIA SUPABASE OAUTH -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+    // Sesuaikan dengan URL & Anon Key Supabase proyek litera_db milikmu
+    const SUPABASE_URL = window.SUPABASE_URL || 'https://ygtbxmhslohgofwwksjt.supabase.co';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_ayyZ90SPYFKdWuuliWMr9g_GxUOxA9t';
+
+    // Gunakan client Supabase yang sudah ada atau buat baru
+    const sbClient = window.supabaseClient || (
+        SUPABASE_URL.includes('supabase.co') && !SUPABASE_URL.includes('YOUR_PROJECT_REF')
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null
+    );
+
+    // 1. Tangani Callback Setelah User Kembali dari Halaman Login Google / Apple
+    async function handleOAuthSession() {
+        if (!sbClient) return;
+        const { data: { session }, error } = await sbClient.auth.getSession();
+        if (error || !session || !session.user) return;
+
+        const authUser = session.user;
+        const email = authUser.email;
+        const fullName = authUser.user_metadata?.full_name
+            || authUser.user_metadata?.name
+            || email.split('@')[0];
+        const avatarUrl = authUser.user_metadata?.avatar_url || '';
+
+        // Cek atau simpan user ke tabel 'users' agar sinkron dengan sistem LITERA
+        let { data: dbUser } = await sbClient
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (!dbUser) {
+            const { data: insertedUser } = await sbClient
+                .from('users')
+                .insert([{
+                    username: fullName,
+                    email: email,
+                    role: 'user',
+                    avatar: avatarUrl
+                }])
+                .select()
+                .single();
+            dbUser = insertedUser || { username: fullName, email, role: 'user', avatar: avatarUrl };
+        }
+
+        // Simpan sesi login ke localStorage agar Header, Katalog & Dashboard mengenali user
+        localStorage.setItem('litera_user', JSON.stringify(dbUser));
+        localStorage.setItem('user', JSON.stringify(dbUser));
+
+        // Arahkan sesuai role
+        if (dbUser.role === 'admin') {
+            window.location.href = '../Dashboard Admin/dashboardadmin.html';
+        } else {
+            window.location.href = '../Katalog/index.html';
+        }
+    }
+
+    // 2. Fungsi Trigger Login OAuth ('google' atau 'apple')
+    window.loginWithOAuth = async function (provider) {
+        if (!sbClient) {
+            alert('Konfigurasi SUPABASE_URL dan SUPABASE_ANON_KEY belum diisi pada skrip OAuth.');
+            return;
+        }
+
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { error } = await sbClient.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+                redirectTo: redirectTo,
+                queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined
+            }
+        });
+
+        if (error) {
+            console.error(`Gagal login dengan ${provider}:`, error.message);
+            alert(`Gagal masuk dengan ${provider.toUpperCase()}: ${error.message}`);
+        }
+    };
+
+    // 3. Pasang Event Klik Otomatis ke Tombol Google & Apple di Halaman
+    document.addEventListener('DOMContentLoaded', () => {
+        handleOAuthSession();
+
+        document.querySelectorAll('button, a').forEach(btn => {
+            const label = btn.textContent.trim().toLowerCase();
+            if (label === 'google' || btn.classList.contains('btn-google')) {
+                btn.type = 'button';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.loginWithOAuth('google');
+                });
+            } else if (label === 'apple' || btn.classList.contains('btn-apple')) {
+                btn.type = 'button';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.loginWithOAuth('apple');
+                });
+            }
+        });
+    });
+})();
+</script>
+</body>
