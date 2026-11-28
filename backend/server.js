@@ -67,6 +67,24 @@ if (require.main === module) {
     ensureDatabaseReady().catch(() => {});
 }
 
+// Helper: Cek apakah kolom ada pada tabel public
+async function tableHasColumn(tableName, columnName) {
+    try {
+        const res = await db.query(
+            `SELECT 1
+             FROM information_schema.columns
+             WHERE table_schema = 'public'
+               AND table_name = $1
+               AND column_name = $2
+             LIMIT 1`,
+            [tableName, columnName]
+        );
+        return res.rowCount > 0;
+    } catch (_) {
+        return false;
+    }
+}
+
 // Helper: Tandai buku dalam pesanan menjadi SOLD OUT (stock = 0)
 async function markOrderBooksSoldOut(itemsRaw) {
     if (!itemsRaw) return;
@@ -77,24 +95,24 @@ async function markOrderBooksSoldOut(itemsRaw) {
         } else if (Array.isArray(itemsRaw)) {
             parsedItems = itemsRaw;
         }
-    } catch (e) {
+    } catch (_) {
         parsedItems = null;
     }
 
     if (Array.isArray(parsedItems)) {
         for (const item of parsedItems) {
             const qty = Number(item.qty || item.quantity || 1);
-            if (item.id) {
+            if (item.id !== undefined && item.id !== null) {
                 await db.query(
-                    `UPDATE books 
+                    `UPDATE books
                      SET stock = GREATEST(stock - $1, 0),
                          status = CASE WHEN GREATEST(stock - $1, 0) <= 0 THEN 'SOLD OUT' ELSE 'READY' END
-                     WHERE id = $2`,
-                    [qty, item.id]
+                     WHERE id::text = $2`,
+                    [qty, String(item.id)]
                 );
             } else if (item.title) {
                 await db.query(
-                    `UPDATE books 
+                    `UPDATE books
                      SET stock = GREATEST(stock - $1, 0),
                          status = CASE WHEN GREATEST(stock - $1, 0) <= 0 THEN 'SOLD OUT' ELSE 'READY' END
                      WHERE LOWER(TRIM(title)) = LOWER(TRIM($2))`,
@@ -110,8 +128,8 @@ async function markOrderBooksSoldOut(itemsRaw) {
             if (book.title && itemsText.includes(book.title.trim().toLowerCase())) {
                 const newStock = Math.max((Number(book.stock) || 1) - 1, 0);
                 await db.query(
-                    `UPDATE books SET stock = $1, status = $2 WHERE id = $3`,
-                    [newStock, newStock <= 0 ? 'SOLD OUT' : 'READY', book.id]
+                    `UPDATE books SET stock = $1, status = $2 WHERE id::text = $3`,
+                    [newStock, newStock <= 0 ? 'SOLD OUT' : 'READY', String(book.id)]
                 );
             }
         }
@@ -127,8 +145,8 @@ async function restoreOrderBooksStock(itemsRaw) {
     for (const book of allBooks.rows) {
         if (book.title && itemsText.includes(book.title.trim().toLowerCase())) {
             await db.query(
-                `UPDATE books SET stock = 1, status = 'READY' WHERE id = $1`,
-                [book.id]
+                `UPDATE books SET stock = 1, status = 'READY' WHERE id::text = $1`,
+                [String(book.id)]
             );
         }
     }
@@ -151,15 +169,33 @@ async function seedInitialBooks() {
                 ["Hujan", "Tere Liye", "Fiksi", "Grade A (Mulus)", 50000, 4.9, "../foto/hujan.jpeg", "Judul: Hujan\nPenulis: Tere Liye (Gramedia Pustaka Utama)\nKondisi Fisik: Grade A (Mulus Original).", 1, "READY"]
             ];
 
-            const sql = `
-                INSERT INTO books (title, author, category, grade, price, rating, img, description, stock, status)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            `;
+            const idTypeRes = await db.query(
+                `SELECT data_type
+                 FROM information_schema.columns
+                 WHERE table_schema = 'public' AND table_name = 'books' AND column_name = 'id'
+                 LIMIT 1`
+            );
+            const isTextId = idTypeRes.rows[0] && /char|text/i.test(idTypeRes.rows[0].data_type);
 
-            for (const book of initialBooks) {
-                await db.query(sql, book);
+            if (isTextId) {
+                const sqlWithId = `
+                    INSERT INTO books (id, title, author, category, grade, price, rating, img, description, stock, status)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                    ON CONFLICT (id) DO NOTHING
+                `;
+                for (let i = 0; i < initialBooks.length; i++) {
+                    await db.query(sqlWithId, [String(i + 1), ...initialBooks[i]]);
+                }
+            } else {
+                const sql = `
+                    INSERT INTO books (title, author, category, grade, price, rating, img, description, stock, status)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                `;
+                for (const book of initialBooks) {
+                    await db.query(sql, book);
+                }
             }
-            console.log('9 Buku katalog awal berhasil disinkronkan ke Supabase PostgreSQL!');
+            console.log('Buku katalog awal berhasil disinkronkan ke Supabase PostgreSQL!');
         }
     } catch (err) {
         console.error('Gagal seeding buku awal:', err.message);
@@ -229,7 +265,7 @@ async function initQcBooksTable() {
 app.get('/api/books', async (req, res) => {
     try {
         await ensureDatabaseReady();
-        const result = await db.query('SELECT * FROM books ORDER BY id DESC');
+        const result = await db.query('SELECT * FROM books');
         res.json({ success: true, books: result.rows, data: result.rows });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -237,89 +273,142 @@ app.get('/api/books', async (req, res) => {
 });
 
 app.post('/api/books', async (req, res) => {
-    const { title, author, category, grade, price, rating, img, desc, description } = req.body;
+    const { title, author, category, grade, price, rating, img, desc, description, stock, Stok, stok, status, Status } = req.body;
     const bookDesc = description || desc || '';
-
-    const query = `
-        INSERT INTO books (title, author, category, grade, price, rating, img, description, stock, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, 'READY')
-        RETURNING id
-    `;
-
-    const values = [
-        title,
-        author,
-        category,
-        grade,
-        Number(price) || 0,
-        parseFloat(rating) || 4.8,
-        img,
-        bookDesc
-    ];
+    const rawStock = stock ?? Stok ?? stok ?? 1;
+    const cleanStock = Math.max(0, Math.floor(Number(rawStock) || 0));
+    const rawStatus = String(status ?? Status ?? (cleanStock > 0 ? 'READY' : 'SOLD OUT')).trim();
 
     try {
         await ensureDatabaseReady();
-        const result = await db.query(query, values);
-        res.json({ success: true, message: 'Buku berhasil ditambahkan!', id: result.rows[0].id });
+        const idTypeRes = await db.query(
+            `SELECT data_type
+             FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'books' AND column_name = 'id'
+             LIMIT 1`
+        );
+        const isTextId = idTypeRes.rows[0] && /char|text/i.test(idTypeRes.rows[0].data_type);
+
+        const hasCapitalStock = await tableHasColumn('books', 'Stok');
+        const hasCapitalStatus = await tableHasColumn('books', 'Status');
+
+        let result;
+        if (isTextId) {
+            const generatedId = String(Date.now());
+            if (hasCapitalStock && hasCapitalStatus) {
+                result = await db.query(
+                    `INSERT INTO books (id, title, author, category, grade, price, rating, img, description, stock, status, "Stok", "Status")
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                     RETURNING *`,
+                    [generatedId, title, author, category, grade, Number(price) || 0, parseFloat(rating) || 4.8, img || '', bookDesc, cleanStock, rawStatus, cleanStock, rawStatus]
+                );
+            } else {
+                result = await db.query(
+                    `INSERT INTO books (id, title, author, category, grade, price, rating, img, description, stock, status)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                     RETURNING *`,
+                    [generatedId, title, author, category, grade, Number(price) || 0, parseFloat(rating) || 4.8, img || '', bookDesc, cleanStock, rawStatus]
+                );
+            }
+        } else {
+            result = await db.query(
+                `INSERT INTO books (title, author, category, grade, price, rating, img, description, stock, status)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                 RETURNING *`,
+                [title, author, category, grade, Number(price) || 0, parseFloat(rating) || 4.8, img || '', bookDesc, cleanStock, rawStatus]
+            );
+        }
+
+        res.json({ success: true, message: 'Buku berhasil ditambahkan!', id: result.rows[0].id, data: result.rows });
     } catch (err) {
         console.error('Error PostgreSQL Query:', err.message);
         res.status(500).json({ success: false, message: 'Gagal menambah buku: ' + err.message });
     }
 });
 
-app.put('/api/books/:id', async (req, res) => {
+async function updateBookHandler(req, res) {
     const bookId = req.params.id;
-    const { title, author, category, grade, price, rating, img, desc, description, stock, status } = req.body;
-    const bookDesc = description || desc || '';
-
-    const query = `
-        UPDATE books
-        SET title = $1,
-            author = $2,
-            category = $3,
-            grade = $4,
-            price = $5,
-            rating = $6,
-            img = $7,
-            description = $8,
-            stock = COALESCE($9, stock),
-            status = COALESCE($10, status)
-        WHERE id = $11
-    `;
-
-    const values = [
-        title,
-        author,
-        category,
-        grade,
-        Number(price) || 0,
-        parseFloat(rating) || 4.8,
-        img,
-        bookDesc,
-        stock !== undefined ? Number(stock) : null,
-        status || null,
-        bookId
-    ];
+    const { title, author, category, grade, price, rating, img, desc, description, stock, Stok, stok, status, Status } = req.body;
+    const bookDesc = description !== undefined ? description : desc;
+    const nextStockRaw = stock ?? Stok ?? stok;
+    const nextStatusRaw = status ?? Status;
 
     try {
         await ensureDatabaseReady();
-        const result = await db.query(query, values);
-        if (result.rowCount === 0) {
+        const existingRes = await db.query('SELECT * FROM books WHERE id::text = $1', [String(bookId)]);
+        if (existingRes.rowCount === 0) {
             return res.status(404).json({ success: false, message: 'Buku tidak ditemukan di database' });
         }
-        res.json({ success: true, message: 'Buku berhasil diperbarui di database Supabase!' });
+        const current = existingRes.rows[0];
+        const hasCapitalStock = await tableHasColumn('books', 'Stok');
+        const hasCapitalStatus = await tableHasColumn('books', 'Status');
+
+        const finalTitle = title !== undefined ? title : current.title;
+        const finalAuthor = author !== undefined ? author : current.author;
+        const finalCategory = category !== undefined ? category : current.category;
+        const finalGrade = grade !== undefined ? grade : current.grade;
+        const finalPrice = price !== undefined ? (Number(price) || 0) : current.price;
+        const finalRating = rating !== undefined ? (parseFloat(rating) || 4.8) : current.rating;
+        const finalImg = img !== undefined ? img : current.img;
+        const finalDesc = bookDesc !== undefined ? bookDesc : current.description;
+        const finalStock = nextStockRaw !== undefined ? Math.max(0, Math.floor(Number(nextStockRaw) || 0)) : current.stock;
+        const finalStatus = nextStatusRaw !== undefined ? nextStatusRaw : current.status;
+
+        let result;
+        if (hasCapitalStock && hasCapitalStatus) {
+            result = await db.query(
+                `UPDATE books
+                 SET title = $1,
+                     author = $2,
+                     category = $3,
+                     grade = $4,
+                     price = $5,
+                     rating = $6,
+                     img = $7,
+                     description = $8,
+                     stock = $9,
+                     status = $10,
+                     "Stok" = $9,
+                     "Status" = $10
+                 WHERE id::text = $11
+                 RETURNING *`,
+                [finalTitle, finalAuthor, finalCategory, finalGrade, finalPrice, finalRating, finalImg, finalDesc, finalStock, finalStatus, String(bookId)]
+            );
+        } else {
+            result = await db.query(
+                `UPDATE books
+                 SET title = $1,
+                     author = $2,
+                     category = $3,
+                     grade = $4,
+                     price = $5,
+                     rating = $6,
+                     img = $7,
+                     description = $8,
+                     stock = $9,
+                     status = $10
+                 WHERE id::text = $11
+                 RETURNING *`,
+                [finalTitle, finalAuthor, finalCategory, finalGrade, finalPrice, finalRating, finalImg, finalDesc, finalStock, finalStatus, String(bookId)]
+            );
+        }
+
+        res.json({ success: true, message: 'Buku berhasil diperbarui di database Supabase!', data: result.rows });
     } catch (err) {
         console.error('Error saat mengupdate buku:', err.message);
         res.status(500).json({ success: false, message: 'Gagal memperbarui buku: ' + err.message });
     }
-});
+}
+
+app.put('/api/books/:id', updateBookHandler);
+app.patch('/api/books/:id', updateBookHandler);
 
 app.delete('/api/books/:id', async (req, res) => {
     const bookId = req.params.id;
 
     try {
         await ensureDatabaseReady();
-        await db.query('DELETE FROM books WHERE id = $1', [bookId]);
+        await db.query('DELETE FROM books WHERE id::text = $1', [String(bookId)]);
         res.json({ success: true, message: 'Buku berhasil dihapus dari database Supabase!' });
     } catch (err) {
         console.error('Error saat menghapus buku:', err.message);
@@ -333,7 +422,7 @@ app.delete('/api/books/:id', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     try {
         await ensureDatabaseReady();
-        const result = await db.query('SELECT id, nama, email, role FROM users ORDER BY id DESC');
+        const result = await db.query('SELECT id, nama, email, role FROM users');
         res.json({ success: true, users: result.rows, data: result.rows });
     } catch (err) {
         console.error('Error GET /api/users:', err.message);
@@ -352,29 +441,55 @@ app.get('/api/qc', async (req, res) => {
     }
 });
 
-app.put('/api/qc/:id', async (req, res) => {
+app.post('/api/qc', async (req, res) => {
+    const { submitter_name, book_title, condition_note, recommended_price, status } = req.body;
+    try {
+        await ensureDatabaseReady();
+        const result = await db.query(
+            `INSERT INTO qc_books (submitter_name, book_title, condition_note, recommended_price, status)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [
+                submitter_name || 'Pengguna Litera',
+                book_title || 'Buku Titipan',
+                condition_note || '-',
+                Number(recommended_price) || 0,
+                status || 'pending'
+            ]
+        );
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        console.error('Error POST /api/qc:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+async function updateQcHandler(req, res) {
     const { id } = req.params;
     const { status } = req.body;
     try {
         await ensureDatabaseReady();
         const result = await db.query(
-            'UPDATE qc_books SET status = $1 WHERE id = $2 RETURNING *',
-            [status, id]
+            'UPDATE qc_books SET status = $1 WHERE id::text = $2 RETURNING *',
+            [status, String(id)]
         );
         if (result.rowCount === 0) {
             return res.status(404).json({ success: false, message: 'Data QC tidak ditemukan' });
         }
-        res.json({ success: true, data: result.rows[0] });
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        console.error('Error PUT /api/qc/:id:', err.message);
+        console.error('Error UPDATE /api/qc/:id:', err.message);
         res.status(500).json({ success: false, message: err.message });
     }
-});
+}
+
+app.put('/api/qc/:id', updateQcHandler);
+app.patch('/api/qc/:id', updateQcHandler);
 
 app.get('/api/orders', async (req, res) => {
     try {
         await ensureDatabaseReady();
-        const result = await db.query('SELECT * FROM orders ORDER BY id DESC');
+        const result = await db.query('SELECT * FROM orders');
         res.json({ success: true, orders: result.rows, data: result.rows });
     } catch (err) {
         console.error('Error GET /api/orders:', err.message);
@@ -382,27 +497,48 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', async (req, res) => {
+async function updateOrderHandler(req, res) {
     const { id } = req.params;
-    const { tracking_number, status } = req.body;
+    const { tracking_number, no_resi, no_pesanan, status } = req.body;
+    const finalResi = tracking_number !== undefined ? tracking_number : no_resi;
 
     try {
         await ensureDatabaseReady();
 
-        const oldOrderRes = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
+        const oldOrderRes = await db.query('SELECT * FROM orders WHERE id::text = $1', [String(id)]);
         if (oldOrderRes.rowCount === 0) {
             return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
         }
         const oldOrder = oldOrderRes.rows[0];
         const newStatus = (status || oldOrder.status || '').trim();
 
+        const hasNoPesanan = await tableHasColumn('orders', 'no_pesanan');
+        const hasNoResi = await tableHasColumn('orders', 'no_resi');
+        const hasTrackingNumber = await tableHasColumn('orders', 'tracking_number');
+
+        const setClauses = ['status = COALESCE($1, status)'];
+        const params = [status !== undefined ? status : null];
+
+        if (hasTrackingNumber && finalResi !== undefined) {
+            params.push(finalResi);
+            setClauses.push(`tracking_number = COALESCE($${params.length}, tracking_number)`);
+        }
+        if (hasNoResi && finalResi !== undefined) {
+            params.push(finalResi);
+            setClauses.push(`no_resi = COALESCE($${params.length}, no_resi)`);
+        }
+        if (hasNoPesanan && no_pesanan !== undefined) {
+            params.push(no_pesanan);
+            setClauses.push(`no_pesanan = COALESCE($${params.length}, no_pesanan)`);
+        }
+
+        params.push(String(id));
         const result = await db.query(
             `UPDATE orders
-             SET tracking_number = COALESCE($1, tracking_number),
-                 status = COALESCE($2, status)
-             WHERE id = $3
+             SET ${setClauses.join(', ')}
+             WHERE id::text = $${params.length}
              RETURNING *`,
-            [tracking_number, status, id]
+            params
         );
 
         // Jika pesanan dibatalkan admin -> kembalikan stok ke READY
@@ -410,12 +546,15 @@ app.put('/api/orders/:id', async (req, res) => {
             await restoreOrderBooksStock(oldOrder.items);
         }
 
-        res.json({ success: true, data: result.rows[0] });
+        res.json({ success: true, data: result.rows });
     } catch (err) {
-        console.error('Error PUT /api/orders/:id:', err.message);
+        console.error('Error UPDATE /api/orders/:id:', err.message);
         res.status(500).json({ success: false, message: err.message });
     }
-});
+}
+
+app.put('/api/orders/:id', updateOrderHandler);
+app.patch('/api/orders/:id', updateOrderHandler);
 
 // ==========================================
 // 3. ROUTE / ENDPOINT API UNTUK CHECKOUT, PEMBAYARAN & MIDTRANS
@@ -510,8 +649,8 @@ app.post('/api/orders/:id/paid', async (req, res) => {
     try {
         await ensureDatabaseReady();
         const orderRes = await db.query(
-            `UPDATE orders SET status = 'Pembayaran Terverifikasi' WHERE id = $1 RETURNING *`,
-            [id]
+            `UPDATE orders SET status = 'Pembayaran Terverifikasi' WHERE id::text = $1 RETURNING *`,
+            [String(id)]
         );
 
         if (orderRes.rowCount === 0) {
@@ -603,47 +742,81 @@ app.get('/api/settings', async (req, res) => {
     try {
         await ensureDatabaseReady();
         const result = await db.query('SELECT * FROM web_settings WHERE id = 1');
-        res.json({ success: true, settings: result.rows[0] || {} });
+        res.json({ success: true, settings: result.rows[0] || {}, data: result.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
 
-app.post('/api/settings', async (req, res) => {
+async function updateSettingsHandler(req, res) {
     const {
         nama_organisasi, tagline, copyright_text, no_telp, email, alamat,
         logo, favicon, link_facebook, link_instagram, link_tiktok, link_youtube,
         link_linkedin, link_maps, smtp_host, smtp_port, smtp_user, smtp_password, smtp_from_email
     } = req.body;
 
-    const sql = `
-        UPDATE web_settings SET 
-            nama_organisasi = $1, tagline = $2, copyright_text = $3, no_telp = $4, email = $5, alamat = $6,
-            logo = COALESCE(NULLIF($7, ''), logo),
-            favicon = COALESCE(NULLIF($8, ''), favicon),
-            link_facebook = $9, link_instagram = $10, link_tiktok = $11, link_youtube = $12,
-            link_linkedin = $13, link_maps = $14, smtp_host = $15, smtp_port = $16, smtp_user = $17,
-            smtp_password = COALESCE(NULLIF($18, ''), smtp_password),
-            smtp_from_email = $19
-        WHERE id = 1
-    `;
-
-    const values = [
-        nama_organisasi, tagline || 'Digital Library & Hub', copyright_text || '© 2026 LITERA. All Rights Reserved.',
-        no_telp, email, alamat, logo || '', favicon || '',
-        link_facebook, link_instagram, link_tiktok, link_youtube,
-        link_linkedin, link_maps, smtp_host, smtp_port || 587, smtp_user,
-        smtp_password || '', smtp_from_email
-    ];
-
     try {
         await ensureDatabaseReady();
-        await db.query(sql, values);
-        res.json({ success: true, message: 'Pengaturan Footer & Website berhasil disimpan ke Supabase!' });
+        const currentRes = await db.query('SELECT * FROM web_settings WHERE id = 1');
+        const cur = currentRes.rows[0] || {};
+
+        const sql = `
+            UPDATE web_settings SET
+                nama_organisasi = $1,
+                tagline = $2,
+                copyright_text = $3,
+                no_telp = $4,
+                email = $5,
+                alamat = $6,
+                logo = COALESCE(NULLIF($7, ''), logo),
+                favicon = COALESCE(NULLIF($8, ''), favicon),
+                link_facebook = $9,
+                link_instagram = $10,
+                link_tiktok = $11,
+                link_youtube = $12,
+                link_linkedin = $13,
+                link_maps = $14,
+                smtp_host = $15,
+                smtp_port = $16,
+                smtp_user = $17,
+                smtp_password = COALESCE(NULLIF($18, ''), smtp_password),
+                smtp_from_email = $19
+            WHERE id = 1
+            RETURNING *
+        `;
+
+        const values = [
+            nama_organisasi !== undefined ? nama_organisasi : (cur.nama_organisasi || 'LITERA'),
+            tagline !== undefined ? (tagline || 'Digital Library & Hub') : (cur.tagline || 'Digital Library & Hub'),
+            copyright_text !== undefined ? (copyright_text || '© 2026 LITERA. All Rights Reserved.') : (cur.copyright_text || '© 2026 LITERA. All Rights Reserved.'),
+            no_telp !== undefined ? no_telp : (cur.no_telp || ''),
+            email !== undefined ? email : (cur.email || ''),
+            alamat !== undefined ? alamat : (cur.alamat || ''),
+            logo || '',
+            favicon || '',
+            link_facebook !== undefined ? link_facebook : (cur.link_facebook || 'https://facebook.com'),
+            link_instagram !== undefined ? link_instagram : (cur.link_instagram || 'https://instagram.com'),
+            link_tiktok !== undefined ? link_tiktok : (cur.link_tiktok || 'https://tiktok.com'),
+            link_youtube !== undefined ? link_youtube : (cur.link_youtube || 'https://youtube.com'),
+            link_linkedin !== undefined ? link_linkedin : (cur.link_linkedin || ''),
+            link_maps !== undefined ? link_maps : (cur.link_maps || ''),
+            smtp_host !== undefined ? smtp_host : (cur.smtp_host || 'smtp.gmail.com'),
+            smtp_port !== undefined ? (Number(smtp_port) || 587) : (cur.smtp_port || 587),
+            smtp_user !== undefined ? smtp_user : (cur.smtp_user || ''),
+            smtp_password || '',
+            smtp_from_email !== undefined ? smtp_from_email : (cur.smtp_from_email || '')
+        ];
+
+        const updated = await db.query(sql, values);
+        res.json({ success: true, message: 'Pengaturan Footer & Website berhasil disimpan ke Supabase!', data: updated.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
-});
+}
+
+app.post('/api/settings', updateSettingsHandler);
+app.patch('/api/settings', updateSettingsHandler);
+app.patch('/api/settings/:id', updateSettingsHandler);
 
 // ==========================================
 // 6. MENJALANKAN SERVER (IPv4 & IPv6 READY)
