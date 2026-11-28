@@ -10,7 +10,6 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="../theme.js"></script>
-
 </head>
 <body>
 
@@ -254,11 +253,18 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        const isLocalLiveServer =
-            ['127.0.0.1', 'localhost'].includes(window.location.hostname) &&
-            window.location.port !== '3000';
+        const hostNameLower = String(window.location.hostname || '').toLowerCase();
+        const isLocalOrigin = !hostNameLower || ['127.0.0.1', 'localhost'].includes(hostNameLower);
+        const API_BASE_URL = isLocalOrigin && window.location.port !== '3000'
+            ? 'http://127.0.0.1:3000'
+            : '';
 
-        const API_BASE_URL = isLocalLiveServer ? 'http://127.0.0.1:3000' : '';
+        const SUPABASE_URL_USER = 'https://ygtbxmhslohgofwwksjt.supabase.co';
+        const SUPABASE_KEY_USER = 'sb_publishable_ayyZ90SPYFKdWuuliWMr9g_GxUOxA9t';
+
+        const userBroadcastChannel = (typeof BroadcastChannel !== 'undefined')
+            ? new BroadcastChannel('litera_sync')
+            : null;
 
         function getLoggedInUser() {
             try {
@@ -316,7 +322,6 @@
             return { ...user, nama: displayName };
         }
 
-        // Navigasi Tab Sidebar
         function showSection(sectionId) {
             const sections = document.querySelectorAll('.dashboard-section');
             sections.forEach(sec => sec.classList.remove('active-section'));
@@ -331,7 +336,6 @@
             if (targetMenu) targetMenu.classList.add('active');
         }
 
-        // Preview Foto Saat Dipilih
         let tempNewAvatar = null;
         function previewProfilePhoto(event) {
             const file = event.target.files[0];
@@ -345,7 +349,6 @@
             }
         }
 
-        // Simpan Perubahan Profil (Sinkron dengan Katalog & localStorage)
         function handleProfileSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('prof-name').value.trim();
@@ -371,67 +374,168 @@
             alert(`✅ Profil pengguna atas nama "${name}" berhasil diperbarui!`);
         }
 
-        // Muat Data Pesanan & Pengiriman Pengguna dari Database / localStorage
+        function normalizeOrderStatusLabel(rawStatus) {
+            const s = String(rawStatus || '').trim().toLowerCase();
+            if (s.includes('selesai')) return 'Pesanan Selesai';
+            if (s.includes('kirim')) return 'Dalam Pengiriman';
+            if (s.includes('kemas') || s.includes('packing') || s.includes('proses')) return 'Sedang Dikemas';
+            if (!s) return 'Pesanan Dibayar';
+            return String(rawStatus).trim();
+        }
+
+        function extractOrdersArray(payload) {
+            if (Array.isArray(payload)) return payload;
+            if (!payload || typeof payload !== 'object') return [];
+            for (const key of ['orders', 'data', 'rows', 'items', 'results']) {
+                if (Array.isArray(payload[key])) return payload[key];
+            }
+            return [];
+        }
+
+        async function fetchAllOrdersFromDbOrBackend() {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 5000);
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/orders`, {
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                if (res.ok) {
+                    const json = await res.json().catch(() => null);
+                    const rows = extractOrdersArray(json);
+                    if (rows.length > 0) return rows;
+                }
+            } catch (_) {
+            } finally {
+                clearTimeout(timer);
+            }
+
+            const sbController = new AbortController();
+            const sbTimer = setTimeout(() => sbController.abort(), 5000);
+            try {
+                const sbRes = await fetch(`${SUPABASE_URL_USER}/rest/v1/orders?select=*`, {
+                    cache: 'no-store',
+                    signal: sbController.signal,
+                    headers: {
+                        'apikey': SUPABASE_KEY_USER,
+                        'Authorization': `Bearer ${SUPABASE_KEY_USER}`
+                    }
+                });
+                if (sbRes.ok) {
+                    const sbRows = await sbRes.json().catch(() => []);
+                    if (Array.isArray(sbRows)) return sbRows;
+                }
+            } catch (_) {
+            } finally {
+                clearTimeout(sbTimer);
+            }
+
+            return [];
+        }
+
+        function getLocalSavedOrders() {
+            const merged = [];
+            const seen = new Set();
+            ['litera_orders', 'litera_user_orders', 'user_orders'].forEach(key => {
+                try {
+                    const list = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (!Array.isArray(list)) return;
+                    list.forEach(item => {
+                        if (!item || typeof item !== 'object') return;
+                        const uniqueKey = String(item.no_pesanan || item.invoice || item.id || item.order_id || JSON.stringify(item));
+                        if (!seen.has(uniqueKey)) {
+                            seen.add(uniqueKey);
+                            merged.push(item);
+                        }
+                    });
+                } catch (_) {}
+            });
+            return merged;
+        }
+
+        function matchOrderToUser(order, user) {
+            if (!user) return true;
+            const uEmail = String(user.email || '').trim().toLowerCase();
+            const uName = String(user.nama || user.name || '').trim().toLowerCase();
+            const uId = user.id !== undefined && user.id !== null ? String(user.id).trim() : '';
+
+            const oEmail = String(order.email || order.user_email || '').trim().toLowerCase();
+            const oName = String(order.customer_name || order.buyer_name || order.user_name || order.nama_pembeli || '').trim().toLowerCase();
+            const oId = order.user_id !== undefined && order.user_id !== null ? String(order.user_id).trim() : '';
+
+            if (uEmail && oEmail && uEmail === oEmail) return true;
+            if (uId && oId && uId === oId) return true;
+            if (uName && oName && (uName === oName || oName.includes(uName) || uName.includes(oName))) return true;
+            return false;
+        }
+
         async function fetchUserOrdersAndTracking(user) {
             const ordersTbody = document.getElementById('user-orders-table-body');
             const trackingContainer = document.getElementById('active-tracking-container');
             const trackingBadge = document.getElementById('tracking-badge-status');
 
-            let userOrders = [];
+            let allDbOrders = await fetchAllOrdersFromDbOrBackend();
+            const localOrders = getLocalSavedOrders();
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/orders`);
-                const data = await res.json();
-                const allOrders = data.orders || data.data || [];
-
-                userOrders = allOrders.filter(o =>
-                    (user.email && o.email === user.email) ||
-                    (user.id && o.user_id === user.id) ||
-                    (user.nama && (o.customer_name === user.nama || o.buyer_name === user.nama))
-                );
-            } catch (err) {
-                console.warn('Menggunakan riwayat pesanan lokal karena API backend belum terjangkau:', err);
+            if (allDbOrders.length > 0) {
+                try {
+                    localStorage.setItem('litera_orders', JSON.stringify(allDbOrders));
+                } catch (_) {}
+            } else {
+                allDbOrders = localOrders;
             }
 
-            if (userOrders.length === 0) {
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('litera_orders') || '[]');
-                    userOrders = localOrders.filter(o =>
-                        !user.nama || !o.customer_name || o.customer_name.toLowerCase() === user.nama.toLowerCase()
-                    );
-                } catch (e) {
-                    userOrders = [];
-                }
+            let userOrders = allDbOrders.filter(o => matchOrderToUser(o, user));
+            if (userOrders.length === 0 && allDbOrders.length > 0) {
+                userOrders = allDbOrders;
             }
 
             document.getElementById('stat-user-orders').textContent = `${userOrders.length} Buku`;
 
             if (userOrders.length > 0) {
-                ordersTbody.innerHTML = userOrders.map(order => `
-                    <tr>
-                        <td><strong>${order.invoice || '#' + (order.id || order.order_id || '-')}</strong></td>
-                        <td>${order.book_title || order.items || order.items_summary || '-'}</td>
-                        <td>${order.created_at ? (isNaN(Date.parse(order.created_at)) ? order.created_at : new Date(order.created_at).toLocaleDateString('id-ID')) : '-'}</td>
-                        <td class="price">Rp ${Number(order.total || order.total_price || 0).toLocaleString('id-ID')}</td>
-                        <td><span class="status-badge blue">${order.status || 'Diproses'}</span></td>
-                    </tr>
-                `).join('');
+                ordersTbody.innerHTML = userOrders.map((order, idx) => {
+                    const noInvoice = order.no_pesanan || order.invoice || order.order_number || ('#' + (order.id || order.order_id || (idx + 1)));
+                    const bookLabel = order.book_title || order.items || order.items_summary || order.judul_buku || '-';
+                    const resiLabel = order.no_resi || order.tracking_number || order.awb || order.resi || '';
+                    const statusText = normalizeOrderStatusLabel(order.status || order.shipping_status || order.pengiriman);
+                    const totalVal = Number(String(order.total ?? order.total_price ?? order.total_bayar ?? 0).replace(/[^0-9.-]/g, '')) || 0;
 
-                const activeOrder = userOrders.find(o => o.status && o.status !== 'Selesai') || userOrders[0];
-                const statusStr = (activeOrder.status || 'Diproses').toLowerCase();
-                const isPacked = ['diproses', 'dikirim', 'selesai', 'pembayaran terverifikasi', 'cod - diproses'].includes(statusStr);
-                const isShipped = ['dikirim', 'selesai'].includes(statusStr);
-                const isDone = statusStr === 'selesai';
+                    return `
+                        <tr>
+                            <td><strong>${noInvoice}</strong>${resiLabel ? `<br><small style="color:#64748b;">Resi: ${resiLabel}</small>` : ''}</td>
+                            <td>${bookLabel}</td>
+                            <td>${order.created_at ? (isNaN(Date.parse(order.created_at)) ? order.created_at : new Date(order.created_at).toLocaleDateString('id-ID')) : '-'}</td>
+                            <td class="price">Rp ${totalVal.toLocaleString('id-ID')}</td>
+                            <td><span class="status-badge blue">${statusText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
 
-                trackingBadge.textContent = activeOrder.status || 'Diproses';
+                const activeOrder = userOrders.find(o => {
+                    const st = normalizeOrderStatusLabel(o.status || o.shipping_status || o.pengiriman).toLowerCase();
+                    return !st.includes('selesai');
+                }) || userOrders[0];
+
+                const statusDisplay = normalizeOrderStatusLabel(activeOrder.status || activeOrder.shipping_status || activeOrder.pengiriman);
+                const statusStr = statusDisplay.toLowerCase();
+                const isPaid = true;
+                const isPacked = ['kemas', 'packing', 'diproses', 'dikirim', 'pengiriman', 'selesai', 'pembayaran terverifikasi', 'cod - diproses'].some(k => statusStr.includes(k));
+                const isShipped = ['dikirim', 'pengiriman', 'selesai'].some(k => statusStr.includes(k));
+                const isDone = statusStr.includes('selesai');
+
+                const activeInvoice = activeOrder.no_pesanan || activeOrder.invoice || activeOrder.order_number || ('#' + (activeOrder.id || activeOrder.order_id || '-'));
+                const activeResi = activeOrder.no_resi || activeOrder.tracking_number || activeOrder.awb || activeOrder.resi || 'Menunggu input resi';
+                const activeBook = activeOrder.book_title || activeOrder.items || activeOrder.items_summary || activeOrder.judul_buku || '-';
+
+                trackingBadge.textContent = statusDisplay;
                 trackingContainer.innerHTML = `
                     <div class="tracking-info">
-                        <p class="invoice-num">No. Invoice: <strong>${activeOrder.invoice || '#' + (activeOrder.id || activeOrder.order_id || '-')}</strong></p>
-                        <p class="courier-name">Resi Pengiriman: <strong>${activeOrder.awb || activeOrder.tracking_number || 'Menunggu input resi'}</strong></p>
-                        <p class="book-title">Buku: <i>${activeOrder.book_title || activeOrder.items || activeOrder.items_summary || '-'}</i></p>
+                        <p class="invoice-num">No. Invoice: <strong>${activeInvoice}</strong></p>
+                        <p class="courier-name">Resi Pengiriman: <strong>${activeResi}</strong></p>
+                        <p class="book-title">Buku: <i>${activeBook}</i></p>
                     </div>
                     <div class="tracking-status">
-                        <div class="status-step active">
+                        <div class="status-step ${isPaid ? 'active' : ''}">
                             <div class="step-icon"><i class="fa-solid fa-check"></i></div>
                             <span>Dibayar</span>
                         </div>
@@ -459,42 +563,120 @@
             }
         }
 
-        // Muat Data Buku Titip Jual Pengguna dari Database
+        function normalizeUserQcStatus(rawStatus) {
+            const st = String(rawStatus || '').trim().toLowerCase();
+            if (['approved', 'setuju', 'disetujui', 'disetujui tayang', 'di-acc', 'acc', 'lolos', 'diterima', 'siap'].includes(st)) {
+                return { key: 'approved', label: 'setuju', badge: 'green' };
+            }
+            if (['rejected', 'tolak', 'ditolak', 'tidak disetujui', 'tidak acc', 'gagal'].includes(st)) {
+                return { key: 'rejected', label: 'tolak', badge: 'red' };
+            }
+            return { key: 'pending', label: 'Dalam Pemeriksaan', badge: 'yellow' };
+        }
+
+        function getLocalSavedConsignments() {
+            const merged = [];
+            const seen = new Set();
+            ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
+                try {
+                    const list = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (!Array.isArray(list)) return;
+                    list.forEach(item => {
+                        if (!item || typeof item !== 'object') return;
+                        const uniqueKey = `${String(item.book_title || item.title || '').trim().toLowerCase()}__${String(item.submitter_name || item.user_name || '').trim().toLowerCase()}`;
+                        if (!seen.has(uniqueKey)) {
+                            seen.add(uniqueKey);
+                            merged.push(item);
+                        }
+                    });
+                } catch (_) {}
+            });
+            return merged;
+        }
+
         async function fetchUserConsignments(user) {
             const titipTbody = document.getElementById('user-titip-table-body');
+            let allItems = [];
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/qc`);
-                const data = await res.json();
-                const allItems = data.items || data.qc || data.data || [];
+                const res = await fetch(`${API_BASE_URL}/api/qc`, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json().catch(() => null);
+                    allItems = Array.isArray(data)
+                        ? data
+                        : (data && (data.items || data.qc || data.qc_books || data.data)) || [];
+                }
+            } catch (_) {}
 
-                const userItems = allItems.filter(item =>
-                    (user.email && item.email === user.email) ||
-                    (user.id && item.user_id === user.id) ||
-                    (user.nama && (item.submitter_name === user.nama || item.user_name === user.nama))
-                );
+            if (!Array.isArray(allItems) || allItems.length === 0) {
+                try {
+                    const sbRes = await fetch(`${SUPABASE_URL_USER}/rest/v1/qc_books?select=*`, {
+                        cache: 'no-store',
+                        headers: {
+                            'apikey': SUPABASE_KEY_USER,
+                            'Authorization': `Bearer ${SUPABASE_KEY_USER}`
+                        }
+                    });
+                    if (sbRes.ok) {
+                        const sbRows = await sbRes.json().catch(() => []);
+                        if (Array.isArray(sbRows) && sbRows.length > 0) allItems = sbRows;
+                    }
+                } catch (_) {}
+            }
 
-                document.getElementById('stat-user-consignments').textContent = `${userItems.length} Unit`;
+            const localQc = getLocalSavedConsignments();
+            if (!Array.isArray(allItems) || allItems.length === 0) {
+                allItems = localQc;
+            } else if (localQc.length > 0) {
+                const localMap = new Map();
+                localQc.forEach(li => {
+                    const k = `${String(li.book_title || li.title || '').trim().toLowerCase()}__${String(li.submitter_name || li.user_name || '').trim().toLowerCase()}`;
+                    localMap.set(k, li);
+                });
+                allItems = allItems.map(dbItem => {
+                    const k = `${String(dbItem.book_title || dbItem.title || '').trim().toLowerCase()}__${String(dbItem.submitter_name || dbItem.user_name || '').trim().toLowerCase()}`;
+                    const loc = localMap.get(k);
+                    const dbStatus = normalizeUserQcStatus(dbItem.status || dbItem.qc_status || dbItem.examination_status);
+                    const locStatus = loc ? normalizeUserQcStatus(loc.status || loc.qc_status || loc.examination_status) : null;
+                    if (loc && dbStatus.key === 'pending' && locStatus && locStatus.key !== 'pending') {
+                        return { ...dbItem, ...loc };
+                    }
+                    return dbItem;
+                });
+            }
 
-                if (userItems.length > 0) {
-                    titipTbody.innerHTML = userItems.map(item => `
+            let userItems = (Array.isArray(allItems) ? allItems : []).filter(item =>
+                (user.email && item.email && String(item.email).toLowerCase() === String(user.email).toLowerCase()) ||
+                (user.id && item.user_id && String(item.user_id) === String(user.id)) ||
+                (user.nama && (
+                    (item.submitter_name && String(item.submitter_name).toLowerCase() === String(user.nama).toLowerCase()) ||
+                    (item.user_name && String(item.user_name).toLowerCase() === String(user.nama).toLowerCase())
+                ))
+            );
+
+            if (userItems.length === 0 && Array.isArray(allItems) && allItems.length > 0) {
+                userItems = allItems;
+            }
+
+            document.getElementById('stat-user-consignments').textContent = `${userItems.length} Unit`;
+
+            if (userItems.length > 0) {
+                titipTbody.innerHTML = userItems.map(item => {
+                    const stInfo = normalizeUserQcStatus(item.status || item.qc_status || item.examination_status);
+                    return `
                         <tr>
                             <td>${item.book_title || item.title || '-'}</td>
                             <td>${item.category || '-'}</td>
                             <td class="price">Rp ${Number(item.recommended_price || item.price || 0).toLocaleString('id-ID')}</td>
-                            <td><span class="status-badge ${item.status === 'approved' ? 'green' : 'yellow'}">${item.status || 'Pending QC'}</span></td>
+                            <td><span class="status-badge ${stInfo.badge}">${stInfo.label}</span></td>
                         </tr>
-                    `).join('');
-                } else {
-                    titipTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada buku yang dititipkan.</td></tr>';
-                }
-            } catch (err) {
-                console.warn('Gagal memuat data titip jual:', err);
-                titipTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:red;">Gagal terhubung ke server titip jual.</td></tr>';
+                    `;
+                }).join('');
+            } else {
+                titipTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada buku yang dititipkan.</td></tr>';
             }
         }
 
-        // Load Data dari localStorage & Database Saat Halaman Dibuka
         document.addEventListener('DOMContentLoaded', () => {
             const user = applyLoggedInUserProfile();
 
@@ -506,6 +688,35 @@
 
             fetchUserOrdersAndTracking(user);
             fetchUserConsignments(user);
+
+            window.addEventListener('storage', (event) => {
+                if (!event || !event.key) return;
+                if (['litera_orders', 'litera_user_orders', 'user_orders'].includes(event.key)) {
+                    fetchUserOrdersAndTracking(getLoggedInUser() || user);
+                }
+                if (['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].includes(event.key)) {
+                    fetchUserConsignments(getLoggedInUser() || user);
+                }
+            });
+
+            window.addEventListener('litera:order-updated', () => {
+                fetchUserOrdersAndTracking(getLoggedInUser() || user);
+            });
+
+            window.addEventListener('litera:qc-updated', () => {
+                fetchUserConsignments(getLoggedInUser() || user);
+            });
+
+            if (userBroadcastChannel) {
+                userBroadcastChannel.onmessage = (event) => {
+                    if (!event || !event.data || !event.data.type) return;
+                    if (event.data.type === 'order-updated' || event.data.type === 'order-created') {
+                        fetchUserOrdersAndTracking(getLoggedInUser() || user);
+                    } else if (event.data.type === 'qc-updated' || event.data.type === 'titip-jual-submit') {
+                        fetchUserConsignments(getLoggedInUser() || user);
+                    }
+                };
+            }
         });
     </script>
 </body>
