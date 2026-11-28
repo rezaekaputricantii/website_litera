@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - LITERA </title>
+    <title>Dashboard Admin - LITERA</title>
     <link id="admin-dynamic-favicon" rel="icon" href="../foto/logo.jpeg">
     <link rel="stylesheet" href="dashboardadmin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -111,6 +111,31 @@
         .stat-card-clickable:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+        }
+        .inv-book-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .inv-book-thumb {
+            width: 42px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            background: #f8fafc;
+        }
+        .order-code-pill {
+            display: inline-block;
+            padding: 0.35rem 0.6rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f172a;
+            font-family: monospace;
         }
 
         @media (max-width: 1024px) {
@@ -360,11 +385,8 @@
                 <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
                         <h2>Kurasi & Pemeriksaan Buku Titipan (QC)</h2>
-                        <p>Periksa kelayakan buku yang dititipkan pengguna. Status yang disetujui otomatis tampil di katalog & dashboard pengguna.</p>
+                        <p>Periksa kelayakan buku yang dititipkan pengguna dan tetapkan keputusan <strong>Setuju</strong> atau <strong>Tolak</strong> agar tersinkron ke Supabase dan Dashboard Pengguna.</p>
                     </div>
-                    <button type="button" class="btn-commerce-primary" onclick="toggleAddQcModal(true)">
-                        <i class="fa-solid fa-plus"></i> Tambah Titip Jual (QC)
-                    </button>
                 </div>
 
                 <div class="content-card">
@@ -395,7 +417,7 @@
                 <div class="section-header">
                     <div>
                         <h2>Kelola Pesanan Masuk & Pengiriman</h2>
-                        <p>Data pesanan disinkronkan langsung dari database <strong>orders</strong>. Ubah nomor pesanan, resi, atau tahap pengiriman lalu klik Simpan.</p>
+                        <p>Semua pesanan terbaca otomatis beserta <strong>No. Pesanan</strong> dan <strong>No. Resi</strong> di Supabase (<strong>orders</strong>), dan setiap perubahan tahap pengiriman langsung masuk & terbaca di <strong>Dashboard Pengguna</strong> serta halaman <strong>Pelacakan</strong>.</p>
                     </div>
                 </div>
                 <div class="content-card">
@@ -450,7 +472,7 @@
                 </div>
             </div>
 
-            <!-- 6. PENGATURAN WEBSITE (SEMUA KOLOM UTUH + LOGO/FAVICON BISA LANGSUNG DIUBAH) -->
+            <!-- 6. PENGATURAN WEBSITE -->
             <div id="settings-section" class="dashboard-section">
                 <div class="section-header">
                     <h2>Pengaturan Konfigurasi Website</h2>
@@ -627,44 +649,6 @@
         </main>
     </div>
 
-    <!-- MODAL TAMBAH TITIP JUAL KE QC -->
-    <div id="modal-add-qc" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); justify-content: center; align-items: center; z-index: 1000; padding: 1rem;">
-        <div style="background: #ffffff; width: 100%; max-width: 560px; border-radius: 14px; padding: 1.5rem; box-shadow: 0 20px 35px rgba(0,0,0,0.22);">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                <h3 style="margin: 0;"><i class="fa-solid fa-clipboard-check"></i> Tambah Data Titip Jual ke QC</h3>
-                <button type="button" onclick="toggleAddQcModal(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="form-add-qc" onsubmit="handleManualQcSubmit(event)">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; font-size: 0.82rem;">
-                    <div>
-                        <label style="font-weight: 600; display: block;">Nama Pengaju</label>
-                        <input type="text" id="qc-submitter" placeholder="Contoh: Nabila" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 600; display: block;">Judul Buku</label>
-                        <input type="text" id="qc-book-title" placeholder="Contoh: Atomic Habits" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 600; display: block;">Kategori</label>
-                        <input type="text" id="qc-category" value="Filsafat" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 600; display: block;">Harga Jual (Rp)</label>
-                        <input type="number" id="qc-price" value="55000" min="0" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <label style="font-weight: 600; display: block;">Kondisi & Kelengkapan</label>
-                        <input type="text" id="qc-condition" value="Grade A (Mulus), halaman lengkap" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    </div>
-                </div>
-                <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                    <button type="button" onclick="toggleAddQcModal(false)" style="padding: 0.5rem 1rem; border: none; background: #eee; border-radius: 6px; cursor: pointer;">Batal</button>
-                    <button type="submit" id="btn-submit-qc" class="btn-commerce-primary">Simpan ke Antrean QC</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL TAMBAH BUKU KE KATALOG -->
     <div id="modal-add-book" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); justify-content: center; align-items: center; z-index: 1000; padding: 1rem;">
         <div style="background: #ffffff; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; border-radius: 14px; padding: 1.5rem; box-shadow: 0 20px 35px rgba(0,0,0,0.22); position: relative;">
@@ -678,9 +662,10 @@
                     <img src="https://via.placeholder.com/120x150?text=Cover" id="book-cover-preview" style="width: 100px; height: 130px; object-fit: cover; border-radius: 6px; border: 1px dashed #ccc;">
                     <div>
                         <h4 style="font-size: 0.875rem; margin: 0 0 0.25rem;">Upload Foto Sampul Buku</h4>
-                        <p style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem;">Pilih foto fisik buku (Maks. 5MB).</p>
+                        <p style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem;">Pilih file foto buku (JPG/PNG/WEBP) agar gambar muncul di katalog & dashboard.</p>
                         <input type="file" id="book-file-input" accept="image/*" style="display: none;" onchange="previewBookCoverPhoto(event)">
                         <button type="button" class="btn-secondary-sm" onclick="document.getElementById('book-file-input').click();" style="cursor: pointer; min-height: 36px; padding: 0.4rem 0.8rem; border-radius: 8px;">Pilih Foto Sampul</button>
+                        <div id="book-file-name-label" style="font-size: 0.72rem; color: #475569; margin-top: 0.35rem;"></div>
                     </div>
                 </div>
 
@@ -730,7 +715,7 @@
 
                 <div style="margin-top: 1rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem;">
                     <button type="button" onclick="toggleAddBookModal(false)" style="padding: 0.5rem 1rem; border: none; background: #eee; border-radius: 6px; cursor: pointer; min-height: 38px;">Batal</button>
-                    <button type="submit" class="btn-commerce-primary">Simpan Produk</button>
+                    <button type="submit" id="btn-submit-book" class="btn-commerce-primary">Simpan Produk</button>
                 </div>
             </form>
         </div>
@@ -743,6 +728,92 @@
         const literaBroadcastChannel = (typeof BroadcastChannel !== 'undefined')
             ? new BroadcastChannel('litera_sync')
             : null;
+
+        function isConsignmentRecord(record) {
+            if (!record) return false;
+            if (typeof record === 'string') {
+                return /^\[TITIP\s*JUAL\]/i.test(record.trim()) || /\btitip\s*jual\b/i.test(record);
+            }
+            if (typeof record !== 'object') return false;
+            const typeVal = String(record.type || record.jenis || record.submission_type || record.mode || record.order_type || record.kategori_transaksi || '').toLowerCase();
+            if (typeVal.includes('titip') || typeVal.includes('consignment')) return true;
+            const textBlob = [
+                record.book_title,
+                record.title,
+                record.items,
+                record.items_summary,
+                record.description,
+                record.raw_text,
+                record.note,
+                record.catatan
+            ].filter(Boolean).join(' ');
+            return /^\[TITIP\s*JUAL\]/i.test(textBlob.trim()) || /\btitip\s*jual\b/i.test(textBlob);
+        }
+
+        function isRemovedEntryRow(item) {
+            if (!item || typeof item !== 'object') return false;
+            const submitter = String(
+                item.submitter_name || item.user_name || item.customer_name || item.nama || item.name || ''
+            ).trim().toLowerCase();
+            const title = String(
+                item.book_title || item.title || item.judul || item.items || item.items_summary || ''
+            ).trim().toLowerCase();
+            const isLegacyMieAyam = submitter === 'pengguna litera' && /seporsi\s+mie\s+ayam/.test(title);
+            const isBukuMasak = /\bbuku\s+masak\b/i.test(title);
+            return isLegacyMieAyam || isBukuMasak;
+        }
+
+        function sanitizeOrderArraysInLocalStorage() {
+            ['litera_orders', 'litera_user_orders', 'user_orders'].forEach(key => {
+                try {
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(arr)) {
+                        const filtered = arr.filter(x => x && typeof x === 'object' && !isConsignmentRecord(x) && !isRemovedEntryRow(x));
+                        localStorage.setItem(key, JSON.stringify(filtered));
+                    }
+                } catch (_) {}
+            });
+        }
+
+        function purgeRemovedLocalStorageEntries() {
+            ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
+                try {
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(arr)) {
+                        const filtered = arr.filter(x => !isRemovedEntryRow(x));
+                        localStorage.setItem(key, JSON.stringify(filtered));
+                    }
+                } catch (_) {}
+            });
+
+            sanitizeOrderArraysInLocalStorage();
+
+            ['litera_books_cache', 'litera_catalog_books'].forEach(key => {
+                try {
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(arr)) {
+                        const filtered = arr.filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || b.judul || '')));
+                        localStorage.setItem(key, JSON.stringify(filtered));
+                    }
+                } catch (_) {}
+            });
+
+            try {
+                const mapObj = JSON.parse(localStorage.getItem('litera_book_stock_status') || '{}');
+                if (mapObj && typeof mapObj === 'object') {
+                    Object.keys(mapObj).forEach(k => {
+                        const val = mapObj[k];
+                        const t = typeof val === 'string' ? val : String((val && (val.title || k)) || k);
+                        if (/\bbuku\s+masak\b/i.test(t) || /\bbuku\s+masak\b/i.test(k)) {
+                            delete mapObj[k];
+                        }
+                    });
+                    localStorage.setItem('litera_book_stock_status', JSON.stringify(mapObj));
+                }
+            } catch (_) {}
+        }
+
+        purgeRemovedLocalStorageEntries();
 
         function extractRowsPayload(payload) {
             if (Array.isArray(payload)) return payload;
@@ -785,35 +856,65 @@
             }
         }
 
+        function resolveBookCoverUrl(book) {
+            if (!book || typeof book !== 'object') return '';
+            const candidates = [
+                book.img,
+                book.cover_url,
+                book.image_url,
+                book.cover,
+                book.image,
+                book.foto,
+                book.photo,
+                book.thumbnail
+            ];
+            for (const c of candidates) {
+                if (typeof c === 'string' && c.trim() !== '') {
+                    return c.trim();
+                }
+            }
+            return '';
+        }
+
         function broadcastCatalogUpdate(booksList) {
+            const cleanBooks = (Array.isArray(booksList) ? booksList : [])
+                .filter(b => b && b.title && !/\bbuku\s+masak\b/i.test(String(b.title)));
             const stockStatusMap = {};
-            (Array.isArray(booksList) ? booksList : []).forEach(b => {
-                if (!b || !b.title) return;
+            cleanBooks.forEach(b => {
                 const isReady = isBookReadyFromStatusAndStock(b);
                 const stockQty = isReady ? Math.max(1, Number(b.Stok ?? b.stok ?? b.stock ?? 1)) : 0;
                 const statusLabel = mapStatusToDbLabel(isReady);
+                const coverUrl = resolveBookCoverUrl(b);
                 stockStatusMap[String(b.title).trim().toLowerCase()] = {
                     id: b.id,
                     title: b.title,
+                    author: b.author || '',
+                    category: b.category || 'Umum',
+                    grade: b.grade || 'Grade A (Mulus)',
+                    price: Number(b.price || 0),
+                    description: b.description || '',
                     ready: isReady,
                     stock: stockQty,
                     Stok: stockQty,
                     Status: statusLabel,
-                    status: statusLabel
+                    status: statusLabel,
+                    img: coverUrl,
+                    cover_url: coverUrl,
+                    image_url: coverUrl
                 };
             });
 
             try {
-                localStorage.setItem('litera_books_cache', JSON.stringify(booksList));
-                localStorage.setItem('litera_catalog_books', JSON.stringify(booksList));
+                localStorage.setItem('litera_books_cache', JSON.stringify(cleanBooks));
+                localStorage.setItem('litera_catalog_books', JSON.stringify(cleanBooks));
                 localStorage.setItem('litera_book_stock_status', JSON.stringify(stockStatusMap));
             } catch (_) {}
-            window.dispatchEvent(new CustomEvent('litera:catalog-updated', { detail: booksList }));
+            window.dispatchEvent(new CustomEvent('litera:catalog-updated', { detail: cleanBooks }));
             if (literaBroadcastChannel) {
                 try {
                     literaBroadcastChannel.postMessage({
                         type: 'catalog-updated',
-                        books: booksList,
+                        books: cleanBooks,
                         stockStatusMap,
                         ts: Date.now()
                     });
@@ -844,6 +945,51 @@
             const apiResource = backendTableMap[table] || table;
             const hasId = matchValue !== null && matchValue !== undefined && String(matchValue) !== '';
 
+            const cfg = getSupabaseConfig();
+            let sbResult = null;
+
+            if (cfg && cfg.url && cfg.key) {
+                let endpoint = `${cfg.url}/rest/v1/${table}`;
+                if (method === 'GET') {
+                    endpoint += `?select=*`;
+                } else if ((method === 'PATCH' || method === 'PUT' || method === 'DELETE') && matchValue !== null && matchValue !== undefined) {
+                    endpoint += `?${encodeURIComponent(matchColumn)}=eq.${encodeURIComponent(String(matchValue))}`;
+                }
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 5000);
+
+                try {
+                    const res = await fetch(endpoint, {
+                        method: method === 'PUT' ? 'PATCH' : method,
+                        cache: 'no-store',
+                        signal: controller.signal,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': cfg.key,
+                            'Authorization': `Bearer ${cfg.key}`,
+                            'Prefer': 'return=representation'
+                        },
+                        body: body ? JSON.stringify(body) : undefined
+                    });
+
+                    if (res.ok) {
+                        sbResult = await res.json().catch(() => null);
+                    }
+                } catch (_) {
+                    sbResult = null;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            if (Array.isArray(sbResult) && sbResult.length > 0) {
+                return sbResult;
+            }
+            if (method === 'GET' && Array.isArray(sbResult)) {
+                return sbResult;
+            }
+
             if (method === 'GET') {
                 const apiRows = await backendApiRequest(apiResource, { method: 'GET' });
                 if (Array.isArray(apiRows)) return apiRows;
@@ -857,41 +1003,50 @@
                     body
                 });
                 if (apiUpdated) return Array.isArray(apiUpdated) ? apiUpdated : [apiUpdated];
-            }
-
-            const cfg = getSupabaseConfig();
-            if (!cfg || !cfg.url || !cfg.key) return null;
-
-            let endpoint = `${cfg.url}/rest/v1/${table}`;
-            if (method === 'GET') {
-                endpoint += `?select=*`;
-            } else if ((method === 'PATCH' || method === 'PUT' || method === 'DELETE') && matchValue !== null && matchValue !== undefined) {
-                endpoint += `?${encodeURIComponent(matchColumn)}=eq.${encodeURIComponent(String(matchValue))}`;
-            }
-
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 5000);
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: method === 'PUT' ? 'PATCH' : method,
-                    cache: 'no-store',
-                    signal: controller.signal,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': cfg.key,
-                        'Authorization': `Bearer ${cfg.key}`,
-                        'Prefer': 'return=representation'
-                    },
-                    body: body ? JSON.stringify(body) : undefined
+            } else if (method === 'DELETE' && hasId) {
+                await backendApiRequest(apiResource, {
+                    method: 'DELETE',
+                    id: matchValue
                 });
+            }
 
-                if (!res.ok) return null;
-                return await res.json().catch(() => null);
-            } catch (_) {
-                return null;
-            } finally {
-                clearTimeout(timer);
+            return sbResult;
+        }
+
+        async function deleteRemovedEntriesFromSupabase(qcRows = [], bookRows = []) {
+            const badQc = (Array.isArray(qcRows) ? qcRows : []).filter(r => isRemovedEntryRow(r));
+            for (const row of badQc) {
+                if (row && row.id !== null && row.id !== undefined && String(row.id) !== '') {
+                    await supabaseRestRequest('qc_books', {
+                        method: 'DELETE',
+                        matchColumn: 'id',
+                        matchValue: row.id
+                    });
+                }
+            }
+            await supabaseRestRequest('qc_books', {
+                method: 'DELETE',
+                matchColumn: 'submitter_name',
+                matchValue: 'Pengguna Litera'
+            });
+
+            const badBooks = (Array.isArray(bookRows) ? bookRows : []).filter(b =>
+                b && /\bbuku\s+masak\b/i.test(String(b.title || b.judul || ''))
+            );
+            for (const b of badBooks) {
+                if (b && b.id !== null && b.id !== undefined && String(b.id) !== '') {
+                    await supabaseRestRequest('books', {
+                        method: 'DELETE',
+                        matchColumn: 'id',
+                        matchValue: b.id
+                    });
+                } else if (b && (b.title || b.judul)) {
+                    await supabaseRestRequest('books', {
+                        method: 'DELETE',
+                        matchColumn: 'title',
+                        matchValue: b.title || b.judul
+                    });
+                }
             }
         }
 
@@ -916,61 +1071,60 @@
         async function upsertBookToSupabase(bookObj) {
             const safeStock = Math.max(0, Math.floor(Number(bookObj.Stok ?? bookObj.stok ?? bookObj.stock ?? 0) || 0));
             const statusLabel = mapStatusToDbLabel(isBookReadyFromStatusAndStock({ ...bookObj, Stok: safeStock }));
+            const coverVal = resolveBookCoverUrl(bookObj);
 
-            const candidates = [
-                {
-                    title: bookObj.title,
-                    author: bookObj.author || '',
-                    category: bookObj.category || 'Umum',
-                    grade: bookObj.grade || 'Grade A (Mulus)',
-                    price: Number(bookObj.price || 0),
-                    Stok: safeStock,
-                    Status: statusLabel
-                },
-                {
-                    title: bookObj.title,
-                    author: bookObj.author || '',
-                    category: bookObj.category || 'Umum',
-                    grade: bookObj.grade || 'Grade A (Mulus)',
-                    price: Number(bookObj.price || 0),
-                    stok: safeStock,
-                    status: statusLabel
-                },
-                {
-                    title: bookObj.title,
-                    author: bookObj.author || '',
-                    category: bookObj.category || 'Umum',
-                    grade: bookObj.grade || 'Grade A (Mulus)',
-                    price: Number(bookObj.price || 0),
-                    stock: safeStock,
-                    status: statusLabel
-                }
+            const baseFields = {
+                title: bookObj.title,
+                author: bookObj.author || '',
+                category: bookObj.category || 'Umum',
+                grade: bookObj.grade || 'Grade A (Mulus)',
+                price: Number(bookObj.price || 0)
+            };
+
+            const coverVariants = coverVal
+                ? [
+                    { img: coverVal, cover_url: coverVal },
+                    { img: coverVal },
+                    { cover_url: coverVal },
+                    { image_url: coverVal },
+                    {}
+                ]
+                : [{}];
+
+            const stockVariants = [
+                { Stok: safeStock, Status: statusLabel },
+                { stok: safeStock, status: statusLabel },
+                { stock: safeStock, status: statusLabel }
             ];
 
-            for (const bodyCandidate of candidates) {
-                if (bookObj.id !== null && bookObj.id !== undefined && String(bookObj.id) !== '') {
-                    const patched = await supabaseRestRequest('books', {
-                        method: 'PATCH',
-                        matchColumn: 'id',
-                        matchValue: bookObj.id,
+            for (const sVar of stockVariants) {
+                for (const cVar of coverVariants) {
+                    const bodyCandidate = { ...baseFields, ...sVar, ...cVar };
+
+                    if (bookObj.id !== null && bookObj.id !== undefined && String(bookObj.id) !== '') {
+                        const patched = await supabaseRestRequest('books', {
+                            method: 'PATCH',
+                            matchColumn: 'id',
+                            matchValue: bookObj.id,
+                            body: bodyCandidate
+                        });
+                        if (Array.isArray(patched) && patched.length > 0) return patched[0];
+                    }
+                    if (bookObj.title) {
+                        const patchedByTitle = await supabaseRestRequest('books', {
+                            method: 'PATCH',
+                            matchColumn: 'title',
+                            matchValue: bookObj.title,
+                            body: bodyCandidate
+                        });
+                        if (Array.isArray(patchedByTitle) && patchedByTitle.length > 0) return patchedByTitle[0];
+                    }
+                    const inserted = await supabaseRestRequest('books', {
+                        method: 'POST',
                         body: bodyCandidate
                     });
-                    if (Array.isArray(patched) && patched.length > 0) return patched[0];
+                    if (Array.isArray(inserted) && inserted.length > 0) return inserted[0];
                 }
-                if (bookObj.title) {
-                    const patchedByTitle = await supabaseRestRequest('books', {
-                        method: 'PATCH',
-                        matchColumn: 'title',
-                        matchValue: bookObj.title,
-                        body: bodyCandidate
-                    });
-                    if (Array.isArray(patchedByTitle) && patchedByTitle.length > 0) return patchedByTitle[0];
-                }
-                const inserted = await supabaseRestRequest('books', {
-                    method: 'POST',
-                    body: bodyCandidate
-                });
-                if (Array.isArray(inserted) && inserted.length > 0) return inserted[0];
             }
             return null;
         }
@@ -1059,14 +1213,41 @@
             return 'Pesanan Dibayar';
         }
 
-        function getOrderNoPesananFromDb(order) {
-            const raw = order.no_pesanan ?? order.invoice ?? order.order_number ?? order.kode_pesanan ?? '';
-            return String(raw).trim();
+        function formatDateCompact(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}${m}${d}`;
         }
 
-        function getOrderResiFromDb(order) {
+        function generateAutoNoPesanan(order = {}, fallbackSeed = 1) {
+            const d = order.created_at && !Number.isNaN(Date.parse(order.created_at)) ? new Date(order.created_at) : new Date();
+            const ymd = formatDateCompact(d);
+            const rawDigits = String(order.id ?? order.order_id ?? fallbackSeed).replace(/\D/g, '');
+            const seqNum = rawDigits ? Number(rawDigits) : Number(fallbackSeed) || 1;
+            const seqStr = String(seqNum).padStart(4, '0').slice(-4);
+            return `ORD-${ymd}-${seqStr}`;
+        }
+
+        function generateAutoNoResi(order = {}, fallbackSeed = 1) {
+            const d = order.created_at && !Number.isNaN(Date.parse(order.created_at)) ? new Date(order.created_at) : new Date();
+            const ymd = formatDateCompact(d);
+            const rawDigits = String(order.id ?? order.order_id ?? fallbackSeed).replace(/\D/g, '');
+            const seqNum = rawDigits ? Number(rawDigits) : Number(fallbackSeed) || 1;
+            const seqStr = String(seqNum).padStart(4, '0').slice(-4);
+            return `LTR-${ymd}-${seqStr}`;
+        }
+
+        function getOrderNoPesananFromDb(order, fallbackSeed = 1) {
+            const raw = order.no_pesanan ?? order.invoice ?? order.order_number ?? order.kode_pesanan ?? '';
+            const trimmed = String(raw).trim();
+            return trimmed || generateAutoNoPesanan(order, fallbackSeed);
+        }
+
+        function getOrderResiFromDb(order, fallbackSeed = 1) {
             const raw = order.no_resi ?? order.tracking_number ?? order.awb ?? order.resi ?? '';
-            return String(raw).trim();
+            const trimmed = String(raw).trim();
+            return trimmed || generateAutoNoResi(order, fallbackSeed);
         }
 
         function getOrderTotalFromDb(order) {
@@ -1083,28 +1264,17 @@
             return order.book_title || order.items || order.items_summary || order.judul_buku || '';
         }
 
-        function isConsignmentRecord(record) {
-            if (!record) return false;
-            if (typeof record === 'string') {
-                return /^\[TITIP\s*JUAL\]/i.test(record.trim()) || /\btitip\s*jual\b/i.test(record);
-            }
-            if (typeof record !== 'object') return false;
-            const typeVal = String(record.type || record.jenis || record.submission_type || record.mode || '').toLowerCase();
-            if (typeVal.includes('titip') || typeVal.includes('consignment')) return true;
-            const textBlob = [
-                record.book_title,
-                record.title,
-                record.items,
-                record.items_summary,
-                record.description,
-                record.raw_text,
-                record.note
-            ].filter(Boolean).join(' ');
-            return /^\[TITIP\s*JUAL\]/i.test(textBlob.trim()) || /\btitip\s*jual\b/i.test(textBlob);
-        }
-
         function syncOrderToUserDashboardStorage(order, noPesanan, trackingNumber, status) {
+            if (!order || isConsignmentRecord(order) || isRemovedEntryRow(order)) return;
+
+            sanitizeOrderArraysInLocalStorage();
+
             try {
+                const isShipped = status === 'Dalam Pengiriman' || status === 'Pesanan Selesai';
+                const statusLabelForUser = status === 'Dalam Pengiriman'
+                    ? 'Dikirim (Dalam Pengiriman)'
+                    : status;
+
                 const updatedOrder = {
                     ...order,
                     id: order.id || order.order_id,
@@ -1115,14 +1285,19 @@
                     tracking_number: trackingNumber,
                     resi: trackingNumber,
                     status: status,
+                    order_status: status,
+                    status_label: statusLabelForUser,
                     shipping_status: status,
                     pengiriman: status,
+                    tracking_stage: status,
+                    is_shipped: isShipped,
                     updated_at: order.updated_at || new Date().toISOString()
                 };
 
                 ['litera_orders', 'litera_user_orders', 'user_orders'].forEach(storageKey => {
                     const rawList = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                    const list = Array.isArray(rawList) ? rawList : [];
+                    const list = (Array.isArray(rawList) ? rawList : [])
+                        .filter(item => item && typeof item === 'object' && !isConsignmentRecord(item) && !isRemovedEntryRow(item));
                     const idx = list.findIndex(item =>
                         (updatedOrder.id && (String(item.id) === String(updatedOrder.id) || String(item.order_id) === String(updatedOrder.id))) ||
                         (noPesanan && (String(item.no_pesanan || '') === noPesanan || String(item.invoice || '') === noPesanan))
@@ -1137,7 +1312,17 @@
                     localStorage.setItem(storageKey, JSON.stringify(list));
                 });
 
+                try {
+                    const trackingMap = JSON.parse(localStorage.getItem('litera_order_tracking') || '{}');
+                    const mapObj = (trackingMap && typeof trackingMap === 'object') ? trackingMap : {};
+                    if (noPesanan) mapObj[noPesanan] = updatedOrder;
+                    if (trackingNumber) mapObj[trackingNumber] = updatedOrder;
+                    if (updatedOrder.id) mapObj[String(updatedOrder.id)] = updatedOrder;
+                    localStorage.setItem('litera_order_tracking', JSON.stringify(mapObj));
+                } catch (_) {}
+
                 window.dispatchEvent(new CustomEvent('litera:order-updated', { detail: updatedOrder }));
+                window.dispatchEvent(new CustomEvent('litera:tracking-updated', { detail: updatedOrder }));
                 if (literaBroadcastChannel) {
                     try {
                         literaBroadcastChannel.postMessage({
@@ -1152,37 +1337,128 @@
             }
         }
 
+        async function persistOrderStatusToSupabase(orderObj, no_pesanan, tracking_number, status) {
+            const targetId = orderObj.id ?? orderObj.order_id;
+            const statusLabelForUser = status === 'Dalam Pengiriman' ? 'Dikirim (Dalam Pengiriman)' : status;
+            const patchPayloads = [
+                { no_pesanan, no_resi: tracking_number, status, shipping_status: status },
+                { no_pesanan, no_resi: tracking_number, status },
+                { no_pesanan, tracking_number, status },
+                { no_resi: tracking_number, status },
+                { status }
+            ];
+
+            let persisted = false;
+            for (const bodyCandidate of patchPayloads) {
+                if (targetId !== undefined && targetId !== null && String(targetId) !== '' && !String(targetId).startsWith('ord-')) {
+                    const updated = await supabaseRestRequest('orders', {
+                        method: 'PATCH',
+                        matchColumn: 'id',
+                        matchValue: targetId,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(updated) && updated.length > 0) {
+                        persisted = true;
+                        break;
+                    }
+                }
+                if (no_pesanan) {
+                    const updatedByNo = await supabaseRestRequest('orders', {
+                        method: 'PATCH',
+                        matchColumn: 'no_pesanan',
+                        matchValue: no_pesanan,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(updatedByNo) && updatedByNo.length > 0) {
+                        persisted = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!persisted && targetId !== undefined && targetId !== null && String(targetId) !== '' && !String(targetId).startsWith('ord-')) {
+                await backendApiRequest('orders', {
+                    method: 'PATCH',
+                    id: targetId,
+                    body: {
+                        no_pesanan,
+                        no_resi: tracking_number,
+                        tracking_number,
+                        status,
+                        shipping_status: status,
+                        status_label: statusLabelForUser
+                    }
+                });
+            }
+        }
+
+        async function persistGeneratedOrderIdentifiersIfMissing(order, noPesanan, trackingNumber) {
+            const missingNoPesanan = !String(order.no_pesanan ?? order.invoice ?? '').trim();
+            const missingNoResi = !String(order.no_resi ?? order.tracking_number ?? order.awb ?? '').trim();
+            if (!missingNoPesanan && !missingNoResi) return;
+            if (order.id === undefined || order.id === null || String(order.id).startsWith('ord-')) return;
+
+            const patchPayload = {
+                no_pesanan: noPesanan,
+                no_resi: trackingNumber
+            };
+            await supabaseRestRequest('orders', {
+                method: 'PATCH',
+                matchColumn: 'id',
+                matchValue: order.id,
+                body: patchPayload
+            });
+        }
+
         function normalizeQcStatusKey(rawStatus) {
             const st = String(rawStatus || '').trim().toLowerCase();
-            if (!st) return 'pending';
-            if (['approved', 'di-acc', 'acc', 'disetujui', 'disetujui tayang', 'lolos', 'diterima', 'terima', 'siap'].includes(st)) {
-                return 'approved';
-            }
-            if (['rejected', 'ditolak', 'tidak acc', 'tidak disetujui', 'gagal qc', 'gagal', 'tolak'].includes(st)) {
+            if (['rejected', 'tolak', 'ditolak', 'tidak acc', 'tidak disetujui', 'gagal qc', 'gagal'].includes(st)) {
                 return 'rejected';
+            }
+            if (['approved', 'setuju', 'disetujui', 'acc', 'diterima', 'lolos qc', 'lolos'].includes(st)) {
+                return 'approved';
             }
             return 'pending';
         }
 
+        function resolveConditionAndCompleteness(item = {}) {
+            const rawCond = String(
+                item.condition_note ?? item.kondisi_kelengkapan ?? item.kondisi ?? item.grade ?? ''
+            ).trim();
+            if (rawCond && rawCond !== '-') return rawCond;
+            const gradeText = String(item.grade || '').trim();
+            return gradeText ? `${gradeText}, halaman lengkap` : 'Grade A (Mulus), halaman lengkap & cover utuh';
+        }
+
         function syncQcToUserDashboardStorage(items) {
             try {
-                const normalized = (Array.isArray(items) ? items : []).map(item => {
-                    const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
-                    const userStatusLabel = statusKey === 'approved'
-                        ? 'Disetujui'
-                        : (statusKey === 'rejected' ? 'Ditolak' : 'Dalam Pemeriksaan');
-                    return {
-                        ...item,
-                        status: statusKey,
-                        qc_status: userStatusLabel,
-                        examination_status: userStatusLabel,
-                        updated_at: item.updated_at || new Date().toISOString()
-                    };
-                });
+                const normalized = (Array.isArray(items) ? items : [])
+                    .filter(item => !isRemovedEntryRow(item))
+                    .map(item => {
+                        const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
+                        const userStatusLabel = statusKey === 'rejected'
+                            ? 'Ditolak'
+                            : (statusKey === 'approved' ? 'Disetujui' : 'Menunggu Pemeriksaan');
+                        const condText = resolveConditionAndCompleteness(item);
+                        return {
+                            ...item,
+                            type: 'titip_jual',
+                            is_consignment: true,
+                            condition_note: condText,
+                            status: statusKey,
+                            qc_status: userStatusLabel,
+                            keputusan: userStatusLabel,
+                            status_label: userStatusLabel,
+                            examination_status: userStatusLabel,
+                            updated_at: item.updated_at || new Date().toISOString()
+                        };
+                    });
 
                 ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
                     localStorage.setItem(key, JSON.stringify(normalized));
                 });
+
+                sanitizeOrderArraysInLocalStorage();
 
                 window.dispatchEvent(new CustomEvent('litera:qc-updated', { detail: normalized }));
                 if (literaBroadcastChannel) {
@@ -1199,148 +1475,57 @@
             }
         }
 
-        async function syncApprovedQcBookToInventory(qcItem) {
-            const bookTitle = String(qcItem.book_title || qcItem.title || '').trim();
-            if (!bookTitle) return null;
-
-            const existingList = getMergedBooksListFromLocalAndDefault();
-            const titleKey = bookTitle.toLowerCase();
-            const foundIdx = existingList.findIndex(b => String(b.title).trim().toLowerCase() === titleKey);
-
-            const qcPrice = Number(qcItem.recommended_price ?? qcItem.price ?? 0) || 0;
-            const qcCategory = qcItem.category || 'Umum';
-            const qcGrade = qcItem.condition_note || qcItem.grade || 'Grade A (Mulus)';
-            const qcAuthor = qcItem.author || qcItem.submitter_name || 'Titip Jual';
-            const nowIso = new Date().toISOString();
-
-            let targetBook;
-            if (foundIdx >= 0) {
-                const prev = existingList[foundIdx];
-                const nextStock = Math.max(1, Number(prev.Stok ?? prev.stok ?? prev.stock ?? 0) + 1);
-                targetBook = normalizeBookRecord({
-                    ...prev,
-                    category: prev.category && prev.category !== 'Umum' ? prev.category : qcCategory,
-                    grade: prev.grade || qcGrade,
-                    price: qcPrice > 0 ? qcPrice : prev.price,
-                    Stok: nextStock,
-                    stok: nextStock,
-                    stock: nextStock,
-                    previous_stock: nextStock,
-                    Status: 'SIAP',
-                    status: 'SIAP',
-                    updated_at: nowIso
-                }, foundIdx);
-                existingList[foundIdx] = targetBook;
-            } else {
-                targetBook = normalizeBookRecord({
-                    id: Date.now(),
-                    title: bookTitle,
-                    author: qcAuthor,
-                    category: qcCategory,
-                    grade: qcGrade,
-                    price: qcPrice,
-                    Stok: 1,
-                    stok: 1,
-                    stock: 1,
-                    previous_stock: 1,
-                    Status: 'SIAP',
-                    status: 'SIAP',
-                    updated_at: nowIso
-                }, existingList.length);
-                existingList.unshift(targetBook);
-            }
-
-            booksCache[targetBook.id] = targetBook;
-            broadcastCatalogUpdate(existingList);
-            renderInventoryTableRows(existingList);
-
-            await upsertBookToSupabase(targetBook);
-            return targetBook;
-        }
-
         async function insertOrUpdateQcInSupabase(entry) {
+            if (isRemovedEntryRow(entry)) return null;
+
             const statusKey = normalizeQcStatusKey(entry.status || entry.qc_status || entry.examination_status);
-            const payload = {
+            const statusDbValue = statusKey === 'rejected'
+                ? 'tolak'
+                : (statusKey === 'approved' ? 'setuju' : 'pending');
+            const condText = resolveConditionAndCompleteness(entry);
+
+            const basePayload = {
                 submitter_name: String(entry.submitter_name || entry.user_name || entry.customer_name || 'Pengguna Litera').trim(),
                 book_title: String(entry.book_title || entry.title || 'Buku Titipan').trim(),
-                condition_note: String(entry.condition_note || entry.grade || '-').trim(),
-                recommended_price: Number(entry.recommended_price ?? entry.price ?? 0) || 0,
-                status: statusKey
+                condition_note: condText,
+                recommended_price: Number(entry.recommended_price ?? entry.price ?? 0) || 0
             };
 
-            if (entry.id !== null && entry.id !== undefined && String(entry.id) !== '') {
-                const updated = await supabaseRestRequest('qc_books', {
-                    method: 'PATCH',
-                    matchColumn: 'id',
-                    matchValue: entry.id,
-                    body: payload
-                });
-                if (Array.isArray(updated) && updated.length > 0) return updated[0];
-            }
+            const payloadVariants = [
+                { ...basePayload, status: statusDbValue, qc_status: statusDbValue },
+                { ...basePayload, status: statusDbValue },
+                { ...basePayload, status: statusKey }
+            ];
 
-            if (payload.book_title) {
-                const updatedByTitle = await supabaseRestRequest('qc_books', {
-                    method: 'PATCH',
-                    matchColumn: 'book_title',
-                    matchValue: payload.book_title,
-                    body: payload
-                });
-                if (Array.isArray(updatedByTitle) && updatedByTitle.length > 0) return updatedByTitle[0];
+            const isNumericId = entry.id !== null && entry.id !== undefined && /^\d+$/.test(String(entry.id).trim());
+
+            for (const candidate of payloadVariants) {
+                if (isNumericId) {
+                    const updated = await supabaseRestRequest('qc_books', {
+                        method: 'PATCH',
+                        matchColumn: 'id',
+                        matchValue: Number(entry.id),
+                        body: candidate
+                    });
+                    if (Array.isArray(updated) && updated.length > 0) return updated[0];
+                }
+
+                if (basePayload.book_title) {
+                    const updatedByTitle = await supabaseRestRequest('qc_books', {
+                        method: 'PATCH',
+                        matchColumn: 'book_title',
+                        matchValue: basePayload.book_title,
+                        body: candidate
+                    });
+                    if (Array.isArray(updatedByTitle) && updatedByTitle.length > 0) return updatedByTitle[0];
+                }
             }
 
             const inserted = await supabaseRestRequest('qc_books', {
                 method: 'POST',
-                body: payload
+                body: payloadVariants[0]
             });
             return Array.isArray(inserted) && inserted.length > 0 ? inserted[0] : null;
-        }
-
-        function toggleAddQcModal(show) {
-            const modal = document.getElementById('modal-add-qc');
-            if (!modal) return;
-            modal.style.display = show ? 'flex' : 'none';
-            if (show) {
-                document.getElementById('form-add-qc').reset();
-                document.getElementById('qc-category').value = 'Filsafat';
-                document.getElementById('qc-price').value = '55000';
-                document.getElementById('qc-condition').value = 'Grade A (Mulus), halaman lengkap';
-            }
-        }
-
-        async function handleManualQcSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-submit-qc');
-            const origHtml = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-            }
-
-            const entry = {
-                submitter_name: document.getElementById('qc-submitter').value.trim(),
-                book_title: document.getElementById('qc-book-title').value.trim(),
-                category: document.getElementById('qc-category').value.trim() || 'Umum',
-                recommended_price: Number(document.getElementById('qc-price').value) || 0,
-                condition_note: document.getElementById('qc-condition').value.trim() || '-',
-                status: 'pending'
-            };
-
-            try {
-                await insertOrUpdateQcInSupabase(entry);
-                const localList = collectAllConsignmentItems([]);
-                localList.unshift({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
-                syncQcToUserDashboardStorage(localList);
-
-                toggleAddQcModal(false);
-                await fetchQcQueueFromDB();
-                await fetchSystemStatsFromDB();
-                alert(`Buku titipan "${entry.book_title}" berhasil ditambahkan ke antrean QC.`);
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = origHtml;
-                }
-            }
         }
 
         function parseConsignmentEntry(rawItem, idx = 0) {
@@ -1350,8 +1535,8 @@
                 if (match) {
                     const cleanPrice = Number(String(match[4] || '0').replace(/[^0-9]/g, '')) || 0;
                     const fotoName = match[5] ? String(match[5]).trim() : '';
-                    const condText = match[3] ? String(match[3]).trim() : 'Grade B+ (Layak Baca)';
-                    return {
+                    const condText = match[3] ? String(match[3]).trim() : 'Grade B+ (Layak Baca), halaman lengkap';
+                    const parsedStrEntry = {
                         id: `titip-str-${idx}-${match[1].trim().toLowerCase().replace(/\s+/g, '-')}`,
                         submitter_name: String(match[2] || 'Pengguna Litera').trim(),
                         book_title: String(match[1] || 'Buku Titipan').trim(),
@@ -1361,20 +1546,23 @@
                         status: 'pending',
                         created_at: new Date().toISOString()
                     };
+                    return isRemovedEntryRow(parsedStrEntry) ? null : parsedStrEntry;
                 }
-                return {
+                const fallbackEntry = {
                     id: `titip-raw-${idx}`,
                     submitter_name: 'Pengguna Litera',
                     book_title: str.replace(/^\[TITIP\s*JUAL\]\s*/i, ''),
                     category: 'Umum',
-                    condition_note: '-',
+                    condition_note: 'Grade A (Mulus), halaman lengkap',
                     recommended_price: 0,
                     status: 'pending',
                     created_at: new Date().toISOString()
                 };
+                return isRemovedEntryRow(fallbackEntry) ? null : fallbackEntry;
             }
 
             if (!rawItem || typeof rawItem !== 'object') return null;
+            if (isRemovedEntryRow(rawItem)) return null;
 
             return {
                 ...rawItem,
@@ -1383,13 +1571,15 @@
                 email: rawItem.email || rawItem.user_email || '',
                 book_title: rawItem.book_title || rawItem.title || rawItem.judul || 'Buku Titipan',
                 category: rawItem.category || rawItem.kategori || 'Umum',
-                condition_note: rawItem.condition_note || rawItem.grade || rawItem.kondisi || '-',
+                condition_note: resolveConditionAndCompleteness(rawItem),
                 recommended_price: Number(rawItem.recommended_price ?? rawItem.price ?? rawItem.harga ?? 0) || 0,
                 status: normalizeQcStatusKey(rawItem.status || rawItem.qc_status || rawItem.examination_status)
             };
         }
 
         function collectAllConsignmentItems(apiItems = [], extraOrders = []) {
+            purgeRemovedLocalStorageEntries();
+
             const extraSources = [];
             ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
                 try {
@@ -1400,14 +1590,14 @@
             });
 
             const consignmentFromOrders = (Array.isArray(extraOrders) ? extraOrders : [])
-                .filter(o => isConsignmentRecord(o))
+                .filter(o => isConsignmentRecord(o) && !isRemovedEntryRow(o))
                 .map(o => ({
                     id: o.id || o.order_id,
                     submitter_name: o.submitter_name || o.customer_name || o.buyer_name || o.user_name || 'Pengguna Litera',
                     email: o.email || o.user_email || '',
                     book_title: String(o.book_title || o.items || o.items_summary || 'Buku Titipan').replace(/^\[TITIP\s*JUAL\]\s*/i, ''),
                     category: o.category || 'Umum',
-                    condition_note: o.condition_note || o.grade || '-',
+                    condition_note: resolveConditionAndCompleteness(o),
                     recommended_price: Number(o.recommended_price ?? o.total ?? o.total_price ?? 0) || 0,
                     status: normalizeQcStatusKey(o.qc_status || o.status)
                 }));
@@ -1417,14 +1607,26 @@
 
             combined.forEach((raw, idx) => {
                 const parsed = parseConsignmentEntry(raw, idx);
-                if (!parsed) return;
+                if (!parsed || isRemovedEntryRow(parsed)) return;
                 const key = `${String(parsed.book_title).trim().toLowerCase()}__${String(parsed.submitter_name).trim().toLowerCase()}`;
                 if (!mergedMap.has(key)) {
                     mergedMap.set(key, parsed);
                 } else {
                     const existing = mergedMap.get(key);
-                    if (existing.status === 'pending' && parsed.status !== 'pending') {
-                        existing.status = parsed.status;
+                    const existingTime = Date.parse(existing.updated_at || existing.created_at || '') || 0;
+                    const incomingTime = Date.parse(parsed.updated_at || parsed.created_at || '') || 0;
+                    if (incomingTime >= existingTime) {
+                        mergedMap.set(key, {
+                            ...existing,
+                            ...parsed,
+                            condition_note: resolveConditionAndCompleteness({ ...existing, ...parsed }),
+                            status: parsed.status
+                        });
+                    } else {
+                        mergedMap.set(key, {
+                            ...existing,
+                            condition_note: resolveConditionAndCompleteness({ ...existing, ...parsed })
+                        });
                     }
                     if (!existing.email && parsed.email) {
                         existing.email = parsed.email;
@@ -1437,25 +1639,31 @@
 
         async function syncMissingConsignmentsToSupabase(dbRows = [], mergedItems = []) {
             const existingDbKeys = new Set(
-                (Array.isArray(dbRows) ? dbRows : []).map(r =>
-                    `${String(r.book_title || r.title || '').trim().toLowerCase()}__${String(r.submitter_name || r.user_name || '').trim().toLowerCase()}`
-                )
+                (Array.isArray(dbRows) ? dbRows : [])
+                    .filter(r => !isRemovedEntryRow(r))
+                    .map(r =>
+                        `${String(r.book_title || r.title || '').trim().toLowerCase()}__${String(r.submitter_name || r.user_name || '').trim().toLowerCase()}`
+                    )
             );
 
             const missingItems = mergedItems.filter(item => {
+                if (isRemovedEntryRow(item)) return false;
                 const key = `${String(item.book_title || '').trim().toLowerCase()}__${String(item.submitter_name || '').trim().toLowerCase()}`;
                 return item.book_title && !existingDbKeys.has(key);
             });
 
             for (const item of missingItems) {
+                const stKey = normalizeQcStatusKey(item.status);
+                const stVal = stKey === 'rejected' ? 'tolak' : (stKey === 'approved' ? 'setuju' : 'pending');
                 await supabaseRestRequest('qc_books', {
                     method: 'POST',
                     body: {
                         submitter_name: item.submitter_name || 'Pengguna Litera',
                         book_title: item.book_title,
-                        condition_note: item.condition_note || '-',
+                        condition_note: resolveConditionAndCompleteness(item),
                         recommended_price: Number(item.recommended_price || 0) || 0,
-                        status: normalizeQcStatusKey(item.status)
+                        status: stVal,
+                        qc_status: stVal
                     }
                 });
             }
@@ -1470,14 +1678,15 @@
             const list = [];
 
             qcItemsCache.forEach((item, idx) => {
+                if (isRemovedEntryRow(item)) return;
                 const statusKey = normalizeQcStatusKey(item.status);
                 if (statusKey === 'pending') {
                     const title = item.book_title || item.title || 'Buku Titipan';
                     const submitter = item.submitter_name || item.user_name || 'Pengguna';
                     list.push({
                         id: `admin-qc-${item.id || title}-${idx}`,
-                        title: 'Pengajuan Titip Jual Baru',
-                        message: `${submitter} mengajukan "${title}" untuk pemeriksaan buku.`,
+                        title: 'Pemeriksaan Buku Titipan',
+                        message: `${submitter} - "${title}" menunggu keputusan Setuju / Tolak.`,
                         icon: 'fa-clipboard-check',
                         badgeColor: '#d97706',
                         targetSection: 'qc-section'
@@ -1487,7 +1696,7 @@
 
             dbOrdersCache.forEach((ord, idx) => {
                 if (isConsignmentRecord(ord)) return;
-                const noPesanan = getOrderNoPesananFromDb(ord) || `#${ord.id || idx + 1}`;
+                const noPesanan = getOrderNoPesananFromDb(ord, idx + 1);
                 const buyer = getOrderBuyerFromDb(ord);
                 const status = normalizeTrackingStatus(ord.status);
                 list.push({
@@ -1597,6 +1806,8 @@
                     document.getElementById('form-add-book').reset();
                     document.getElementById('prod-stock').value = '1';
                     document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
+                    const fileLabel = document.getElementById('book-file-name-label');
+                    if (fileLabel) fileLabel.textContent = '';
                     uploadedCoverBase64 = null;
                     editingBookId = null;
                     modalTitle.innerHTML = '<i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru ke Katalog';
@@ -1677,6 +1888,7 @@
             const uniqueBooks = new Map();
             (Array.isArray(booksList) ? booksList : []).forEach((b, idx) => {
                 if (!b || typeof b !== 'object') return;
+                if (/\bbuku\s+masak\b/i.test(String(b.title || b.judul || ''))) return;
                 const key = String(b.title || b.id || `book-${idx}`).trim().toLowerCase();
                 uniqueBooks.set(key, b);
             });
@@ -1690,6 +1902,7 @@
             const totalUsers = Array.isArray(usersList) ? usersList.length : 0;
 
             const pendingQc = (Array.isArray(qcList) ? qcList : []).filter(item =>
+                !isRemovedEntryRow(item) &&
                 normalizeQcStatusKey(item.status || item.qc_status || item.examination_status) === 'pending'
             ).length;
 
@@ -1702,11 +1915,12 @@
         }
 
         function updateKpiFromCurrentCaches() {
-            const cachedBooks = Object.values(booksCache);
+            const cachedBooks = Object.values(booksCache).filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || '')));
             let fallbackBooks = cachedBooks;
             if (fallbackBooks.length === 0) {
                 try {
-                    const parsed = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
+                    const parsed = JSON.parse(localStorage.getItem('litera_books_cache') || '[]')
+                        .filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || '')));
                     if (Array.isArray(parsed) && parsed.length > 0) fallbackBooks = parsed;
                     else fallbackBooks = DEFAULT_CATALOG_BOOKS;
                 } catch (_) {
@@ -1718,20 +1932,26 @@
 
         function normalizeBookRecord(book, idx = 0) {
             if (!book || typeof book !== 'object') return null;
+            const titleVal = book.title || book.judul || 'Judul Buku';
+            if (/\bbuku\s+masak\b/i.test(String(titleVal))) return null;
+
             const rawStock = Number(book.Stok ?? book.stok ?? book.stock ?? book.quantity ?? 0);
             const safeStock = Number.isFinite(rawStock) && rawStock >= 0 ? Math.floor(rawStock) : 0;
             const isReady = isBookReadyFromStatusAndStock({ ...book, Stok: safeStock, stok: safeStock, stock: safeStock });
             const finalStock = isReady ? Math.max(1, safeStock) : 0;
             const dbStatus = mapStatusToDbLabel(isReady);
+            const coverUrl = resolveBookCoverUrl(book);
 
             return {
                 ...book,
                 id: book.id ?? book.book_id ?? (idx + 1),
-                title: book.title || book.judul || 'Judul Buku',
+                title: titleVal,
                 author: book.author || book.penulis || '',
                 category: book.category || book.kategori || 'Umum',
                 grade: book.grade || book.kondisi || 'Grade A (Mulus)',
                 price: Number(book.price ?? book.harga ?? 0) || 0,
+                img: coverUrl || book.img || '',
+                cover_url: coverUrl || book.cover_url || '',
                 Stok: finalStock,
                 stok: finalStock,
                 stock: finalStock,
@@ -1744,8 +1964,11 @@
             const tbody = document.getElementById('inventory-table-body');
             if (!tbody) return;
 
+            const cleanList = (Array.isArray(finalBooks) ? finalBooks : [])
+                .filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || '')));
+
             booksCache = {};
-            if (!Array.isArray(finalBooks) || finalBooks.length === 0) {
+            if (cleanList.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color:#666;">Belum ada produk di katalog.</td></tr>';
                 return;
             }
@@ -1753,7 +1976,7 @@
             let totalAvailableStock = 0;
             tbody.innerHTML = '';
 
-            finalBooks.forEach(book => {
+            cleanList.forEach(book => {
                 booksCache[book.id] = book;
                 const isReady = isBookReadyFromStatusAndStock(book);
                 const finalStock = isReady ? Number(book.Stok ?? book.stok ?? book.stock ?? 0) : 0;
@@ -1763,11 +1986,21 @@
                 const iconClass = isReady ? 'fa-circle-check' : 'fa-circle-xmark';
                 const btnText = isReady ? `READY (${finalStock} UNIT)` : 'SOLD OUT';
                 const safeId = String(book.id).replace(/'/g, "\\'");
+                const coverSrc = resolveBookCoverUrl(book);
+
+                const thumbHtml = coverSrc
+                    ? `<img src="${coverSrc}" alt="${String(book.title || '').replace(/"/g, '&quot;')}" class="inv-book-thumb" onerror="this.style.display='none'">`
+                    : '';
 
                 const tr = document.createElement('tr');
                 tr.id = `book-row-${book.id}`;
                 tr.innerHTML = `
-                    <td><strong>${book.title}</strong><br><small style="color:#666;">${book.author || ''}</small></td>
+                    <td>
+                        <div class="inv-book-cell">
+                            ${thumbHtml}
+                            <div><strong>${book.title}</strong><br><small style="color:#666;">${book.author || ''}</small></div>
+                        </div>
+                    </td>
                     <td>${book.category}</td>
                     <td>${book.grade}</td>
                     <td class="price">Rp ${Number(book.price).toLocaleString('id-ID')}</td>
@@ -1811,21 +2044,43 @@
             renderInventoryTableRows(initialList);
 
             const sbRows = await supabaseRestRequest('books', { method: 'GET' });
-            if (Array.isArray(sbRows) && sbRows.length > 0) {
-                const dbBooks = sbRows.map((b, idx) => normalizeBookRecord(b, idx)).filter(Boolean);
-                const bookMap = new Map();
-                dbBooks.forEach(b => {
-                    const key = String(b.title).trim().toLowerCase();
-                    if (!bookMap.has(key)) bookMap.set(key, b);
-                });
-                const finalBooks = Array.from(bookMap.values());
-                broadcastCatalogUpdate(finalBooks);
-                renderInventoryTableRows(finalBooks);
-                updateKpiFromCurrentCaches();
-            } else {
-                for (const item of initialList) {
-                    await upsertBookToSupabase(item);
+            if (Array.isArray(sbRows)) {
+                await deleteRemovedEntriesFromSupabase([], sbRows);
+                const filteredSbRows = sbRows.filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || b.judul || '')));
+
+                if (filteredSbRows.length > 0) {
+                    const localMapByTitle = new Map();
+                    initialList.forEach(lb => {
+                        if (resolveBookCoverUrl(lb)) {
+                            localMapByTitle.set(String(lb.title).trim().toLowerCase(), resolveBookCoverUrl(lb));
+                        }
+                    });
+
+                    const dbBooks = filteredSbRows.map((b, idx) => {
+                        const normalized = normalizeBookRecord(b, idx);
+                        if (!normalized) return null;
+                        const fallbackCover = localMapByTitle.get(String(normalized.title).trim().toLowerCase()) || '';
+                        const mergedCover = resolveBookCoverUrl(normalized) || fallbackCover;
+                        return {
+                            ...normalized,
+                            img: mergedCover,
+                            cover_url: mergedCover
+                        };
+                    }).filter(Boolean);
+
+                    const bookMap = new Map();
+                    dbBooks.forEach(b => {
+                        const key = String(b.title).trim().toLowerCase();
+                        if (!bookMap.has(key)) bookMap.set(key, b);
+                    });
+                    const finalBooks = Array.from(bookMap.values());
+                    broadcastCatalogUpdate(finalBooks);
+                    renderInventoryTableRows(finalBooks);
+                    updateKpiFromCurrentCaches();
+                } else {
+                    broadcastCatalogUpdate(initialList);
                 }
+            } else {
                 broadcastCatalogUpdate(initialList);
             }
         }
@@ -1885,72 +2140,140 @@
             });
         }
 
-        function previewBookCoverPhoto(event) {
-            const file = event.target.files[0];
-            if (file) {
+        function readImageFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedCoverBase64 = e.target.result;
-                    document.getElementById('book-cover-preview').src = uploadedCoverBase64;
-                };
+                reader.onerror = err => reject(err);
+                reader.onload = () => resolve(reader.result);
                 reader.readAsDataURL(file);
-            }
+            });
+        }
+
+        async function compressImageFileToDataUrl(file, maxWidth = 560, maxHeight = 720, quality = 0.78) {
+            if (!file) return null;
+            const rawDataUrl = await readImageFileAsDataUrl(file);
+            if (!rawDataUrl) return null;
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onerror = () => resolve(rawDataUrl);
+                img.onload = function() {
+                    let w = img.width || maxWidth;
+                    let h = img.height || maxHeight;
+                    const ratio = Math.min(maxWidth / w, maxHeight / h, 1);
+                    w = Math.max(1, Math.round(w * ratio));
+                    h = Math.max(1, Math.round(h * ratio));
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return resolve(rawDataUrl);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const compressed = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressed || rawDataUrl);
+                };
+                img.src = rawDataUrl;
+            });
+        }
+
+        async function previewBookCoverPhoto(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const fileLabel = document.getElementById('book-file-name-label');
+            if (fileLabel) fileLabel.textContent = `File terpilih: ${file.name}`;
+            const compressedUrl = await compressImageFileToDataUrl(file, 560, 720, 0.78);
+            uploadedCoverBase64 = compressedUrl;
+            document.getElementById('book-cover-preview').src = compressedUrl;
         }
 
         async function handleAddBookSubmit(e) {
             e.preventDefault();
+
+            const fileInput = document.getElementById('book-file-input');
+            const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+            if (!uploadedCoverBase64 && selectedFile) {
+                uploadedCoverBase64 = await compressImageFileToDataUrl(selectedFile, 560, 720, 0.78);
+            }
 
             if (!uploadedCoverBase64 && !editingBookId) {
                 alert('Silakan pilih foto sampul buku terlebih dahulu.');
                 return;
             }
 
-            const rawPrice = document.getElementById('prod-price').value.toString();
-            const cleanPrice = Number(rawPrice.replace(/[^0-9]/g, ''));
-            const stockInput = Number(document.getElementById('prod-stock').value);
-            const cleanStock = Number.isFinite(stockInput) && stockInput >= 0 ? Math.floor(stockInput) : 0;
-            const statusLabel = mapStatusToDbLabel(cleanStock > 0);
-
-            const bookData = {
-                title: document.getElementById('prod-title').value,
-                author: document.getElementById('prod-author').value,
-                category: document.getElementById('prod-category').value,
-                grade: document.getElementById('prod-grade').value,
-                price: cleanPrice || 0,
-                Stok: cleanStock,
-                stok: cleanStock,
-                stock: cleanStock,
-                previous_stock: Math.max(1, cleanStock),
-                Status: statusLabel,
-                status: statusLabel,
-                rating: parseFloat(document.getElementById('prod-rating').value) || 4.8,
-                img: uploadedCoverBase64 || 'https://via.placeholder.com/120x150?text=Cover',
-                description: document.getElementById('prod-desc').value,
-                updated_at: new Date().toISOString()
-            };
-
-            await upsertBookToSupabase({ ...bookData, id: editingBookId });
+            const submitBtn = document.getElementById('btn-submit-book');
+            const origHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            }
 
             try {
-                const existingBooks = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
-                const list = Array.isArray(existingBooks) && existingBooks.length > 0 ? existingBooks : [...DEFAULT_CATALOG_BOOKS];
-                const record = { ...bookData, id: editingBookId || Date.now() };
-                const idx = list.findIndex(b => String(b.id) === String(record.id) || String(b.title).toLowerCase() === String(record.title).toLowerCase());
-                if (idx >= 0) list[idx] = { ...list[idx], ...record };
-                else list.unshift(record);
-                broadcastCatalogUpdate(list);
-            } catch (_) {}
+                const rawPrice = document.getElementById('prod-price').value.toString();
+                const cleanPrice = Number(rawPrice.replace(/[^0-9]/g, ''));
+                const stockInput = Number(document.getElementById('prod-stock').value);
+                const cleanStock = Number.isFinite(stockInput) && stockInput >= 0 ? Math.floor(stockInput) : 0;
+                const statusLabel = mapStatusToDbLabel(cleanStock > 0);
+                const coverValue = uploadedCoverBase64 || 'https://via.placeholder.com/120x150?text=Cover';
 
-            alert(`Produk "${bookData.title}" berhasil disimpan (Status: ${statusLabel}, Stok: ${cleanStock}).`);
+                const bookData = {
+                    title: document.getElementById('prod-title').value.trim(),
+                    author: document.getElementById('prod-author').value.trim(),
+                    category: document.getElementById('prod-category').value,
+                    grade: document.getElementById('prod-grade').value,
+                    price: cleanPrice || 0,
+                    Stok: cleanStock,
+                    stok: cleanStock,
+                    stock: cleanStock,
+                    previous_stock: Math.max(1, cleanStock),
+                    Status: statusLabel,
+                    status: statusLabel,
+                    rating: parseFloat(document.getElementById('prod-rating').value) || 4.8,
+                    img: coverValue,
+                    cover_url: coverValue,
+                    image_url: coverValue,
+                    description: document.getElementById('prod-desc').value.trim(),
+                    updated_at: new Date().toISOString()
+                };
 
-            document.getElementById('form-add-book').reset();
-            document.getElementById('prod-stock').value = '1';
-            document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
-            uploadedCoverBase64 = null;
-            editingBookId = null;
-            toggleAddBookModal(false);
-            fetchAdminInventoryFromSupabase();
-            fetchSystemStatsFromDB();
+                const savedDbBook = await upsertBookToSupabase({ ...bookData, id: editingBookId });
+                const finalRecord = {
+                    ...bookData,
+                    id: (savedDbBook && savedDbBook.id) ? savedDbBook.id : (editingBookId || Date.now()),
+                    img: resolveBookCoverUrl(savedDbBook) || coverValue,
+                    cover_url: resolveBookCoverUrl(savedDbBook) || coverValue,
+                    image_url: resolveBookCoverUrl(savedDbBook) || coverValue
+                };
+
+                try {
+                    const existingBooks = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
+                    const list = Array.isArray(existingBooks) && existingBooks.length > 0 ? existingBooks : [...DEFAULT_CATALOG_BOOKS];
+                    const idx = list.findIndex(b => String(b.id) === String(finalRecord.id) || String(b.title).toLowerCase() === String(finalRecord.title).toLowerCase());
+                    if (idx >= 0) list[idx] = { ...list[idx], ...finalRecord };
+                    else list.unshift(finalRecord);
+                    broadcastCatalogUpdate(list);
+                    renderInventoryTableRows(list);
+                } catch (_) {}
+
+                alert(`Produk "${bookData.title}" beserta file foto sampul berhasil disimpan dan disinkronkan ke katalog.`);
+
+                document.getElementById('form-add-book').reset();
+                document.getElementById('prod-stock').value = '1';
+                document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
+                const fileLabel = document.getElementById('book-file-name-label');
+                if (fileLabel) fileLabel.textContent = '';
+                uploadedCoverBase64 = null;
+                editingBookId = null;
+                toggleAddBookModal(false);
+                await fetchAdminInventoryFromSupabase();
+                await fetchSystemStatsFromDB();
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origHtml;
+                }
+            }
         }
 
         async function fetchSystemStatsFromDB() {
@@ -1963,12 +2286,17 @@
                 supabaseRestRequest('orders', { method: 'GET' })
             ]);
 
+            await deleteRemovedEntriesFromSupabase(
+                Array.isArray(sbQc) ? sbQc : [],
+                Array.isArray(sbBooks) ? sbBooks : []
+            );
+
             const booksData = Array.isArray(sbBooks) && sbBooks.length > 0
-                ? sbBooks
+                ? sbBooks.filter(b => b && !/\bbuku\s+masak\b/i.test(String(b.title || b.judul || '')))
                 : getMergedBooksListFromLocalAndDefault();
 
             const rawAllOrders = Array.isArray(sbOrders) ? sbOrders : [];
-            const rawDbOrders = rawAllOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o));
+            const rawDbOrders = rawAllOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o) && !isRemovedEntryRow(o));
             const qcData = collectAllConsignmentItems(Array.isArray(sbQc) ? sbQc : [], rawAllOrders);
             await syncMissingConsignmentsToSupabase(Array.isArray(sbQc) ? sbQc : [], qcData);
 
@@ -1980,23 +2308,33 @@
             syncQcToUserDashboardStorage(qcData);
 
             ordersCache = {};
-            rawDbOrders.forEach((ord, idx) => {
-                const oid = ord.id ?? ord.order_id ?? `ord-${idx}`;
-                ordersCache[oid] = { ...ord, id: oid };
-                syncOrderToUserDashboardStorage(
-                    ordersCache[oid],
-                    getOrderNoPesananFromDb(ord),
-                    getOrderResiFromDb(ord),
-                    normalizeTrackingStatus(ord.status)
-                );
-            });
+            for (let idx = 0; idx < rawDbOrders.length; idx++) {
+                const ord = rawDbOrders[idx];
+                const oid = ord.id ?? ord.order_id ?? `ord-${idx + 1}`;
+                const autoNoPesanan = getOrderNoPesananFromDb(ord, idx + 1);
+                const autoNoResi = getOrderResiFromDb(ord, idx + 1);
+                const normStatus = normalizeTrackingStatus(ord.status);
+
+                ordersCache[oid] = {
+                    ...ord,
+                    id: oid,
+                    no_pesanan: autoNoPesanan,
+                    invoice: autoNoPesanan,
+                    no_resi: autoNoResi,
+                    tracking_number: autoNoResi,
+                    awb: autoNoResi,
+                    status: normStatus
+                };
+                await persistGeneratedOrderIdentifiersIfMissing(ord, autoNoPesanan, autoNoResi);
+                syncOrderToUserDashboardStorage(ordersCache[oid], autoNoPesanan, autoNoResi, normStatus);
+            }
 
             updateKpiCards(booksData, usersData, qcData, rawDbOrders);
             renderAdminNotificationPanel();
 
             if (rawDbOrders.length > 0) {
                 tbody.innerHTML = rawDbOrders.slice(0, 5).map((order, idx) => {
-                    const noPesanan = getOrderNoPesananFromDb(order) || `#${order.id || idx + 1}`;
+                    const noPesanan = getOrderNoPesananFromDb(order, idx + 1);
                     const statusLabel = normalizeTrackingStatus(order.status);
                     const numAmount = getOrderTotalFromDb(order);
                     return `
@@ -2014,56 +2352,67 @@
             }
         }
 
-        async function fetchQcQueueFromDB() {
+        function renderQcQueueTableRows(items = []) {
             const tbody = document.getElementById('qc-table-body');
+            if (!tbody) return;
+
+            const filteredItems = (Array.isArray(items) ? items : []).filter(item => !isRemovedEntryRow(item));
+
+            if (filteredItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Tidak ada buku titipan di daftar pemeriksaan.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredItems.map(item => {
+                const condText = resolveConditionAndCompleteness(item);
+                const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
+                const isApproved = statusKey === 'approved';
+                const isRejected = statusKey === 'rejected';
+                const statusLabel = isApproved ? 'Disetujui' : (isRejected ? 'Ditolak' : 'Menunggu Pemeriksaan');
+                const badgeClass = isApproved ? 'green' : (isRejected ? 'red' : 'yellow');
+                const safeTitle = String(item.book_title || item.title || '').replace(/'/g, "\\'");
+                const safeId = String(item.id || '').replace(/'/g, "\\'");
+
+                return `
+                    <tr id="qc-row-${item.id}">
+                        <td><strong>${item.submitter_name || '-'}</strong><br><small style="color:#64748b;">${item.email || 'Akun Pengguna'}</small></td>
+                        <td><strong>${item.book_title || '-'}</strong><br><small style="color:#64748b;">${item.category || 'Umum'}</small></td>
+                        <td>${condText}</td>
+                        <td class="price">Rp ${Number(item.recommended_price || 0).toLocaleString('id-ID')}</td>
+                        <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
+                        <td>
+                            <div class="action-btn-group">
+                                <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'setuju', '${safeTitle}')"><i class="fa-solid fa-check"></i> Setuju</button>
+                                <button type="button" class="btn-danger-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'tolak', '${safeTitle}')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function fetchQcQueueFromDB() {
             const [sbRows, sbOrders] = await Promise.all([
                 supabaseRestRequest('qc_books', { method: 'GET' }),
                 supabaseRestRequest('orders', { method: 'GET' })
             ]);
+            await deleteRemovedEntriesFromSupabase(Array.isArray(sbRows) ? sbRows : [], []);
             const items = collectAllConsignmentItems(Array.isArray(sbRows) ? sbRows : [], Array.isArray(sbOrders) ? sbOrders : []);
             await syncMissingConsignmentsToSupabase(Array.isArray(sbRows) ? sbRows : [], items);
 
             qcItemsCache = items;
             syncQcToUserDashboardStorage(items);
+            renderQcQueueTableRows(items);
             updateKpiFromCurrentCaches();
             renderAdminNotificationPanel();
-
-            if (items.length > 0) {
-                tbody.innerHTML = items.map(item => {
-                    const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
-                    const isApproved = statusKey === 'approved';
-                    const isRejected = statusKey === 'rejected';
-                    const badgeClass = isApproved ? 'green' : (isRejected ? 'red' : 'yellow');
-                    const statusLabel = isApproved ? 'Disetujui Tayang' : (isRejected ? 'Ditolak' : 'Dalam Pemeriksaan');
-                    const safeTitle = String(item.book_title || item.title || '').replace(/'/g, "\\'");
-                    const safeId = String(item.id || '').replace(/'/g, "\\'");
-
-                    return `
-                        <tr id="qc-row-${item.id}">
-                            <td><strong>${item.submitter_name || '-'}</strong><br><small style="color:#64748b;">${item.email || 'Akun Pengguna'}</small></td>
-                            <td><strong>${item.book_title || '-'}</strong><br><small style="color:#64748b;">${item.category || 'Umum'}</small></td>
-                            <td>${item.condition_note || '-'}</td>
-                            <td class="price">Rp ${Number(item.recommended_price || 0).toLocaleString('id-ID')}</td>
-                            <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
-                            <td>
-                                <div class="action-btn-group">
-                                    <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'approved', '${safeTitle}')"><i class="fa-solid fa-check"></i> Setujui</button>
-                                    <button type="button" class="btn-danger-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'rejected', '${safeTitle}')"><i class="fa-solid fa-xmark"></i> Tolak</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada buku titip jual yang masuk.</td></tr>';
-            }
         }
 
         async function updateQcStatus(id, status, bookTitle = '') {
             const statusKey = normalizeQcStatusKey(status);
             const isApproved = statusKey === 'approved';
-            const statusLabel = isApproved ? 'Disetujui Tayang' : 'Ditolak';
-            const userStatusLabel = isApproved ? 'Disetujui' : 'Ditolak';
+            const isRejected = statusKey === 'rejected';
+            const dbDecisionValue = isRejected ? 'tolak' : (isApproved ? 'setuju' : 'pending');
+            const labelText = isApproved ? 'Disetujui' : (isRejected ? 'Ditolak' : 'Menunggu Pemeriksaan');
             const nowIso = new Date().toISOString();
 
             const baseList = qcItemsCache.length > 0 ? qcItemsCache : collectAllConsignmentItems([]);
@@ -2072,32 +2421,84 @@
                 (bookTitle && (String(item.book_title || '').toLowerCase() === String(bookTitle).toLowerCase() || String(item.title || '').toLowerCase() === String(bookTitle).toLowerCase()))
             );
 
+            const resolvedCond = resolveConditionAndCompleteness(targetItem || {});
             const updatedList = baseList.map(item =>
                 (id && String(item.id) === String(id)) ||
                 (bookTitle && (String(item.book_title || '').toLowerCase() === String(bookTitle).toLowerCase() || String(item.title || '').toLowerCase() === String(bookTitle).toLowerCase()))
-                    ? { ...item, status: statusKey, qc_status: userStatusLabel, examination_status: userStatusLabel, updated_at: nowIso }
+                    ? {
+                        ...item,
+                        condition_note: resolveConditionAndCompleteness(item),
+                        status: statusKey,
+                        qc_status: labelText,
+                        keputusan: dbDecisionValue,
+                        updated_at: nowIso
+                    }
                     : item
             );
 
             qcItemsCache = updatedList;
+            renderQcQueueTableRows(updatedList);
             syncQcToUserDashboardStorage(updatedList);
+            updateKpiFromCurrentCaches();
+            renderAdminNotificationPanel();
 
             const payload = {
                 ...(targetItem || {}),
                 id: (targetItem && targetItem.id) ? targetItem.id : id,
                 book_title: bookTitle || (targetItem && targetItem.book_title) || '',
-                status: statusKey
+                condition_note: resolvedCond,
+                status: dbDecisionValue,
+                qc_status: dbDecisionValue
             };
 
             await insertOrUpdateQcInSupabase(payload);
-            if (isApproved) {
-                await syncApprovedQcBookToInventory(payload);
-            }
 
-            updateKpiFromCurrentCaches();
-            alert(`Status pemeriksaan "${payload.book_title || 'buku titipan'}" diperbarui menjadi ${statusLabel}.${isApproved ? ' Buku otomatis masuk ke Kelola Stok & Produk (SIAP).' : ''}`);
-            fetchQcQueueFromDB();
-            fetchSystemStatsFromDB();
+            alert(`Keputusan "${labelText}" untuk "${payload.book_title || 'buku titipan'}" berhasil disimpan ke Supabase dan disinkronkan ke dashboard pengguna.`);
+            await fetchQcQueueFromDB();
+            await fetchSystemStatsFromDB();
+        }
+
+        function renderOrdersTableRows(orders = []) {
+            const tbody = document.getElementById('orders-table-body');
+            if (!tbody) return;
+
+            if (orders.length > 0) {
+                const rowsHtml = [];
+                for (let idx = 0; idx < orders.length; idx++) {
+                    const order = orders[idx];
+                    const orderId = order.id ?? order.order_id ?? `ord-${idx + 1}`;
+                    const safeOrderId = String(orderId).replace(/'/g, "\\'");
+                    const noPesanan = getOrderNoPesananFromDb(order, idx + 1);
+                    const existingResi = getOrderResiFromDb(order, idx + 1);
+                    const currentStatus = normalizeTrackingStatus(order.status);
+                    const numAmount = getOrderTotalFromDb(order);
+                    const itemsText = getOrderItemsFromDb(order);
+
+                    const statusOptionsHtml = TRACKING_STAGES.map(stage =>
+                        `<option value="${stage}" ${currentStatus === stage ? 'selected' : ''}>${stage}</option>`
+                    ).join('');
+
+                    rowsHtml.push(`
+                        <tr>
+                            <td><span class="order-code-pill" id="nopesanan-${orderId}">${noPesanan}</span></td>
+                            <td><strong>${getOrderBuyerFromDb(order)}</strong>${itemsText ? `<br><small style="color:#64748b;">${itemsText}</small>` : ''}</td>
+                            <td class="price">Rp ${numAmount.toLocaleString('id-ID')}</td>
+                            <td><span class="order-code-pill" id="resi-${orderId}">${existingResi}</span></td>
+                            <td>
+                                <select id="order-status-${orderId}" onchange="handleOrderStageLiveChange('${safeOrderId}')" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background:#fff;">
+                                    ${statusOptionsHtml}
+                                </select>
+                            </td>
+                            <td>
+                                <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateOrderStatus('${safeOrderId}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                            </td>
+                        </tr>
+                    `);
+                }
+                tbody.innerHTML = rowsHtml.join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada pesanan pembeli di database.</td></tr>';
+            }
         }
 
         async function fetchOrdersFromDB() {
@@ -2106,61 +2507,47 @@
 
             const sbOrders = await supabaseRestRequest('orders', { method: 'GET' });
             const orders = Array.isArray(sbOrders)
-                ? sbOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o))
+                ? sbOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o) && !isRemovedEntryRow(o))
                 : [];
 
             dbOrdersCache = orders;
             updateKpiFromCurrentCaches();
 
             if (orders.length > 0) {
-                tbody.innerHTML = orders.map((order, idx) => {
-                    const orderId = order.id ?? order.order_id ?? `ord-${idx}`;
-                    const safeOrderId = String(orderId).replace(/'/g, "\\'");
-                    const noPesanan = getOrderNoPesananFromDb(order);
-                    ordersCache[orderId] = { ...order, id: orderId };
-
-                    const existingResi = getOrderResiFromDb(order);
+                for (let idx = 0; idx < orders.length; idx++) {
+                    const order = orders[idx];
+                    const orderId = order.id ?? order.order_id ?? `ord-${idx + 1}`;
+                    const noPesanan = getOrderNoPesananFromDb(order, idx + 1);
+                    const existingResi = getOrderResiFromDb(order, idx + 1);
                     const currentStatus = normalizeTrackingStatus(order.status);
-                    const numAmount = getOrderTotalFromDb(order);
-                    const itemsText = getOrderItemsFromDb(order);
 
+                    ordersCache[orderId] = {
+                        ...order,
+                        id: orderId,
+                        no_pesanan: noPesanan,
+                        invoice: noPesanan,
+                        no_resi: existingResi,
+                        tracking_number: existingResi,
+                        awb: existingResi,
+                        status: currentStatus
+                    };
+
+                    await persistGeneratedOrderIdentifiersIfMissing(order, noPesanan, existingResi);
                     syncOrderToUserDashboardStorage(ordersCache[orderId], noPesanan, existingResi, currentStatus);
-
-                    const statusOptionsHtml = TRACKING_STAGES.map(stage =>
-                        `<option value="${stage}" ${currentStatus === stage ? 'selected' : ''}>${stage}</option>`
-                    ).join('');
-
-                    return `
-                        <tr>
-                            <td><input type="text" id="nopesanan-${orderId}" value="${noPesanan}" placeholder="No. Pesanan" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight:600; min-width:155px;"></td>
-                            <td><strong>${getOrderBuyerFromDb(order)}</strong>${itemsText ? `<br><small style="color:#64748b;">${itemsText}</small>` : ''}</td>
-                            <td class="price">Rp ${numAmount.toLocaleString('id-ID')}</td>
-                            <td><input type="text" id="resi-${orderId}" value="${existingResi}" placeholder="No. Resi" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; min-width:165px;"></td>
-                            <td>
-                                <select id="order-status-${orderId}" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background:#fff;">
-                                    ${statusOptionsHtml}
-                                </select>
-                            </td>
-                            <td>
-                                <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateOrderStatus('${safeOrderId}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } else {
+                }
+                renderOrdersTableRows(Object.values(ordersCache));
+            } else if (tbody) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada pesanan pembeli di database.</td></tr>';
             }
             renderAdminNotificationPanel();
         }
 
-        async function updateOrderStatus(orderId) {
-            const orderObj = ordersCache[orderId] || { id: orderId };
-            const noPesananInput = document.getElementById(`nopesanan-${orderId}`);
-            const resiInput = document.getElementById(`resi-${orderId}`);
+        async function handleOrderStageLiveChange(orderId) {
+            const orderObj = ordersCache[orderId] || Object.values(ordersCache).find(o => String(o.id) === String(orderId)) || { id: orderId };
             const statusSelect = document.getElementById(`order-status-${orderId}`);
 
-            const no_pesanan = noPesananInput ? noPesananInput.value.trim() : getOrderNoPesananFromDb(orderObj);
-            const tracking_number = resiInput ? resiInput.value.trim() : getOrderResiFromDb(orderObj);
+            const no_pesanan = getOrderNoPesananFromDb(orderObj, orderId);
+            const tracking_number = getOrderResiFromDb(orderObj, orderId);
             const status = statusSelect ? normalizeTrackingStatus(statusSelect.value) : normalizeTrackingStatus(orderObj.status);
 
             const mergedOrder = {
@@ -2178,30 +2565,60 @@
                 updated_at: new Date().toISOString()
             };
             ordersCache[orderId] = mergedOrder;
+            if (orderObj.id !== undefined) ordersCache[orderObj.id] = mergedOrder;
+
+            dbOrdersCache = dbOrdersCache.map(o =>
+                (String(o.id ?? o.order_id) === String(mergedOrder.id) || String(o.no_pesanan || '') === no_pesanan)
+                    ? { ...o, status, no_pesanan, no_resi: tracking_number }
+                    : o
+            );
+
             syncOrderToUserDashboardStorage(mergedOrder, no_pesanan, tracking_number, status);
+            updateKpiFromCurrentCaches();
+            renderAdminNotificationPanel();
 
-            const targetId = orderObj.id ?? orderId;
+            await persistOrderStatusToSupabase(mergedOrder, no_pesanan, tracking_number, status);
+        }
 
-            const patchPayloads = [
-                { no_pesanan, no_resi: tracking_number, status },
-                { no_pesanan, tracking_number, status },
-                { no_resi: tracking_number, status },
-                { status }
-            ];
+        async function updateOrderStatus(orderId) {
+            const orderObj = ordersCache[orderId] || Object.values(ordersCache).find(o => String(o.id) === String(orderId)) || { id: orderId };
+            const statusSelect = document.getElementById(`order-status-${orderId}`);
 
-            for (const bodyCandidate of patchPayloads) {
-                const updated = await supabaseRestRequest('orders', {
-                    method: 'PATCH',
-                    matchColumn: 'id',
-                    matchValue: targetId,
-                    body: bodyCandidate
-                });
-                if (Array.isArray(updated) && updated.length > 0) break;
-            }
+            const no_pesanan = getOrderNoPesananFromDb(orderObj, orderId);
+            const tracking_number = getOrderResiFromDb(orderObj, orderId);
+            const status = statusSelect ? normalizeTrackingStatus(statusSelect.value) : normalizeTrackingStatus(orderObj.status);
 
-            alert('Perubahan pesanan berhasil disimpan ke database.');
-            fetchOrdersFromDB();
-            fetchSystemStatsFromDB();
+            const mergedOrder = {
+                ...orderObj,
+                id: orderObj.id ?? orderId,
+                no_pesanan,
+                invoice: no_pesanan,
+                no_resi: tracking_number,
+                awb: tracking_number,
+                tracking_number,
+                resi: tracking_number,
+                status,
+                shipping_status: status,
+                pengiriman: status,
+                updated_at: new Date().toISOString()
+            };
+            ordersCache[orderId] = mergedOrder;
+            if (orderObj.id !== undefined) ordersCache[orderObj.id] = mergedOrder;
+
+            dbOrdersCache = dbOrdersCache.map(o =>
+                (String(o.id ?? o.order_id) === String(mergedOrder.id) || String(o.no_pesanan || '') === no_pesanan)
+                    ? { ...o, status, no_pesanan, no_resi: tracking_number }
+                    : o
+            );
+
+            syncOrderToUserDashboardStorage(mergedOrder, no_pesanan, tracking_number, status);
+            renderOrdersTableRows(Object.values(ordersCache));
+            updateKpiFromCurrentCaches();
+            renderAdminNotificationPanel();
+
+            await persistOrderStatusToSupabase(mergedOrder, no_pesanan, tracking_number, status);
+
+            alert(`Perubahan pesanan (${no_pesanan} | Resi: ${tracking_number} | ${status}) berhasil disimpan ke Supabase dan langsung terbaca di dashboard pengguna & pelacakan.`);
         }
 
         async function fetchUsersFromDB() {
@@ -2494,6 +2911,7 @@
         }
 
         window.onload = async function() {
+            purgeRemovedLocalStorageEntries();
             await Promise.all([
                 fetchAdminInventoryFromSupabase(),
                 fetchQcQueueFromDB(),
@@ -2516,23 +2934,26 @@
                 fetchSystemStatsFromDB();
             }
             if (['litera_orders', 'litera_user_orders', 'user_orders'].includes(event.key)) {
+                sanitizeOrderArraysInLocalStorage();
                 fetchOrdersFromDB();
                 fetchSystemStatsFromDB();
             }
         });
 
         window.addEventListener('litera:titip-jual-submit', async (event) => {
-            if (event && event.detail) {
+            if (event && event.detail && !isRemovedEntryRow(event.detail)) {
                 await insertOrUpdateQcInSupabase(event.detail);
             }
+            sanitizeOrderArraysInLocalStorage();
             await fetchQcQueueFromDB();
             await fetchSystemStatsFromDB();
         });
 
         window.addEventListener('litera:consignment-submit', async (event) => {
-            if (event && event.detail) {
+            if (event && event.detail && !isRemovedEntryRow(event.detail)) {
                 await insertOrUpdateQcInSupabase(event.detail);
             }
+            sanitizeOrderArraysInLocalStorage();
             await fetchQcQueueFromDB();
             await fetchSystemStatsFromDB();
         });
@@ -2544,9 +2965,11 @@
                     fetchAdminInventoryFromSupabase();
                     fetchSystemStatsFromDB();
                 } else if (event.data.type === 'qc-updated' || event.data.type === 'titip-jual-submit') {
+                    sanitizeOrderArraysInLocalStorage();
                     fetchQcQueueFromDB();
                     fetchSystemStatsFromDB();
                 } else if (event.data.type === 'order-created' || event.data.type === 'order-updated') {
+                    sanitizeOrderArraysInLocalStorage();
                     fetchOrdersFromDB();
                     fetchSystemStatsFromDB();
                 }
