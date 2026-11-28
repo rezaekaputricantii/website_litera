@@ -1409,6 +1409,9 @@
                     tracking_number,
                     status: normalizedStage
                 };
+                if (targetId !== undefined && targetId !== null) {
+                    ordersCache[targetId] = syncedOrder;
+                }
                 syncOrderToUserDashboardStorage(syncedOrder, no_pesanan, tracking_number, normalizedStage);
             }
             return persistedRow;
