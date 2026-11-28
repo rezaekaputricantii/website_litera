@@ -3,155 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - LITERA Hub</title>
+    <title>Dashboard Admin - LITERA </title>
     <link id="admin-dynamic-favicon" rel="icon" href="../foto/logo.jpeg">
-    <!-- Menghubungkan ke file CSS terpisah -->
     <link rel="stylesheet" href="dashboardadmin.css">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="/website_litera-main/theme.js"></script>
+    <script>
+        (function initLiteraEndpoints() {
+            const host = String(window.location.hostname || '').toLowerCase();
+            const isLocal = !host || host === '127.0.0.1' || host === 'localhost';
+            window.LITERA_BACKEND_API = isLocal ? 'http://127.0.0.1:3000/api' : '/api';
+            window.LITERA_SUPABASE = {
+                url: 'https://ygtbxmhslohgofwwksjt.supabase.co',
+                anonKey: 'sb_publishable_ayyZ90SPYFKdWuuliWMr9g_GxUOxA9t'
+            };
+            try {
+                localStorage.setItem('litera_backend_api', window.LITERA_BACKEND_API);
+                localStorage.setItem('litera_supabase_config', JSON.stringify(window.LITERA_SUPABASE));
+            } catch (_) {}
+        })();
+    </script>
     <style>
-        /* CSS Modal Pop-up Form Tambah & Edit Buku */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000;
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
-        .modal-card {
-            background: #ffffff;
-            width: 90%; max-width: 650px;
-            max-height: 90vh; overflow-y: auto;
-            border-radius: 12px; padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            position: relative;
+        .dashboard-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
         }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #eee; padding-bottom: 0.75rem; margin-bottom: 1rem;
+        .sidebar {
+            flex: 0 0 255px;
         }
-        .modal-close {
-            background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666;
+        .main-content {
+            flex: 1;
+            min-width: 0;
         }
-        .hidden-modal { display: none !important; }
+        .table-scroll-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th,
+        .data-table td {
+            vertical-align: middle;
+        }
+        .action-btn-group {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .stock-toggle-btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 999px;
+            padding: 0.38rem 0.75rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: transform 0.12s ease, opacity 0.15s ease;
+        }
+        .stock-toggle-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.92;
+        }
+        .stock-toggle-btn.is-ready {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #93c5fd;
+        }
+        .stock-toggle-btn.is-soldout {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        .btn-commerce-primary {
+            cursor: pointer;
+            min-height: 38px;
+            padding: 0.5rem 0.95rem;
+            border-radius: 8px;
+            border: none;
+            background: #7a1c24;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .btn-commerce-primary:hover {
+            background: #5f141b;
+        }
+        .stat-card-clickable {
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .stat-card-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                flex-direction: column;
+                gap: 1.1rem;
+            }
+            .sidebar {
+                flex: none;
+                width: 100%;
+            }
+            .sidebar-menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45rem;
+            }
+            .sidebar-menu .menu-item {
+                flex: 1 1 auto;
+                min-width: 160px;
+                justify-content: flex-start;
+            }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.9rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .brand-tagline-sub,
+            .profile-text {
+                display: none;
+            }
+            .sidebar-menu .menu-item {
+                flex: 1 1 calc(50% - 0.35rem);
+                min-width: 135px;
+                font-size: 0.82rem;
+                padding: 0.6rem 0.7rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            .section-header .btn-commerce-primary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- HEADER NAVIGATION ADMIN -->
     <header class="site-header">
         <div class="header-container">
-            <!-- Brand Logo Litera -->
             <div class="brand-logo" onclick="location.href='../Katalog/index.html'" style="cursor: pointer;">
                 <img id="admin-brand-logo-img" src="../foto/logo.jpeg" alt="Logo Litera" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&auto=format&fit=crop&q=80'">
                 <div class="brand-tagline">
                     <span class="brand-tagline-title">LITERA ADMIN</span>
-                    <span class="brand-tagline-sub">Management Hub</span>
+                    <span class="brand-tagline-sub">Pusat Kendali Toko Buku</span>
                 </div>
             </div>
 
-            <!-- Admin Profile Info -->
-            <div class="header-user-info">
-                <div class="notification-badge">
+            <div class="header-user-info" style="position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div class="notification-badge" id="admin-notif-bell-btn" onclick="toggleAdminNotificationPanel(event)" role="button" tabindex="0" aria-label="Buka Notifikasi Toko" style="cursor: pointer; position: relative;">
                     <i class="fa-solid fa-bell"></i>
-                    <span class="dot"></span>
+                    <span class="dot" id="admin-notif-unread-dot"></span>
                 </div>
+
+                <div id="admin-notif-dropdown-panel" style="display: none; position: fixed; top: 68px; right: 16px; left: auto; width: min(390px, calc(100vw - 32px)); max-height: 75vh; overflow-y: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18); z-index: 1200; text-align: left;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.9rem 1rem; border-bottom: 1px solid #f1f5f9; background: #fafafa; border-radius: 14px 14px 0 0;">
+                        <div>
+                            <strong style="font-size: 0.92rem; color: #0f172a; display: block;">Notifikasi Toko Litera</strong>
+                            <small id="admin-notif-summary-sub" style="font-size: 0.75rem; color: #64748b;">Info titip jual, pesanan masuk & pembeli</small>
+                        </div>
+                        <button type="button" onclick="markAllAdminNotificationsRead()" style="background: #fff1f2; color: #7a1c24; border: 1px solid #fecdd3; border-radius: 8px; padding: 0.35rem 0.65rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                            Tandai Dibaca
+                        </button>
+                    </div>
+                    <div id="admin-notif-list-container" style="padding: 0.5rem;">
+                        <p style="padding: 1rem; text-align: center; color: #64748b; font-size: 0.84rem; margin: 0;">Memuat pemberitahuan...</p>
+                    </div>
+                </div>
+
                 <div class="user-profile-btn" onclick="showAdminSection('admin-profile-section')" style="cursor: pointer;">
                     <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar" class="avatar" id="header-admin-avatar">
                     <div class="profile-text">
                         <span class="username" id="header-admin-name">Super Admin</span>
-                        <span class="user-role">Litera Headquarters</span>
+                        <span class="user-role">Pengelola Toko Litera</span>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- DASHBOARD CONTAINER -->
     <div class="dashboard-container">
 
-        <!-- SIDEBAR ADMIN MENU -->
         <aside class="sidebar">
             <div class="user-card-summary">
                 <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="Admin" class="sidebar-avatar" id="sidebar-admin-avatar">
                 <h4 class="user-name" id="sidebar-admin-name">Super Admin</h4>
                 <p class="user-email" id="sidebar-admin-email">admin@litera.app</p>
-                <span class="badge-status role-admin"><i class="fa-solid fa-shield-halved"></i> Administrator</span>
+                <span class="badge-status role-admin"><i class="fa-solid fa-shield-halved"></i> Pengelola Toko</span>
             </div>
 
             <nav class="sidebar-menu">
-                <button onclick="showAdminSection('overview-admin')" id="menu-overview-admin" class="menu-item active">
+                <button type="button" onclick="showAdminSection('overview-admin')" id="menu-overview-admin" class="menu-item active">
                     <i class="fa-solid fa-chart-line"></i>
-                    <span>Statistik Sistem</span>
+                    <span>Ringkasan Toko</span>
                 </button>
-                <button onclick="showAdminSection('inventory-section')" id="menu-inventory" class="menu-item">
+                <button type="button" onclick="showAdminSection('inventory-section')" id="menu-inventory" class="menu-item">
                     <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Kelola Stok & Katalog</span>
+                    <span>Kelola Stok & Produk</span>
                 </button>
-                <button onclick="showAdminSection('qc-section')" id="menu-qc" class="menu-item">
+                <button type="button" onclick="showAdminSection('qc-section')" id="menu-qc" class="menu-item">
                     <i class="fa-solid fa-clipboard-check"></i>
-                    <span>Verifikasi QC Buku</span>
+                    <span>Kurasi & Pemeriksaan Buku</span>
                 </button>
-                <button onclick="showAdminSection('orders-admin')" id="menu-orders-admin" class="menu-item">
+                <button type="button" onclick="showAdminSection('orders-admin')" id="menu-orders-admin" class="menu-item">
                     <i class="fa-solid fa-box-archive"></i>
-                    <span>Kelola Pesanan</span>
+                    <span>Pesanan Masuk</span>
                 </button>
-                <button onclick="showAdminSection('users-section')" id="menu-users" class="menu-item">
+                <button type="button" onclick="showAdminSection('users-section')" id="menu-users" class="menu-item">
                     <i class="fa-solid fa-users-gear"></i>
-                    <span>Data Pengguna</span>
+                    <span>Daftar Pembeli & Anggota</span>
                 </button>
-                <button onclick="showAdminSection('settings-section')" id="menu-settings" class="menu-item">
+                <button type="button" onclick="showAdminSection('settings-section')" id="menu-settings" class="menu-item">
                     <i class="fa-solid fa-sliders"></i>
                     <span>Pengaturan Website</span>
                 </button>
-                <button onclick="showAdminSection('admin-profile-section')" id="menu-admin-profile" class="menu-item">
+                <button type="button" onclick="showAdminSection('admin-profile-section')" id="menu-admin-profile" class="menu-item">
                     <i class="fa-solid fa-user-gear"></i>
-                    <span>Perbarui Profil Admin</span>
+                    <span>Profil Pengelola</span>
                 </button>
-                <a href="../Landing Pages/index.html" class="menu-item logout-btn">
+                <a href="../login/index.html" class="menu-item logout-btn">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Keluar (Logout)</span>
+                    <span>Keluar</span>
                 </a>
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT ADMIN -->
         <main class="main-content">
 
-            <!-- SECTION 1: STATISTIK SISTEM (TERHUBUNG DATABASE SUPABASE) -->
+            <!-- 1. RINGKASAN TOKO -->
             <div id="overview-admin" class="dashboard-section active-section">
                 <div class="section-header">
-                    <h2>Panel Kontrol Utama</h2>
-                    <p>Ringkasan data operasional platform Litera secara real-time dari database Supabase.</p>
+                    <div>
+                        <h2>Ringkasan Performa Toko</h2>
+                        <p>Pantau stok produk, antrean titip jual (QC), pesanan pembeli, dan omzet penjualan toko.</p>
+                    </div>
                 </div>
 
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card stat-card-clickable" role="button" tabindex="0" onclick="showAdminSection('inventory-section')">
                         <div class="stat-icon red"><i class="fa-solid fa-book"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label">Total Buku Katalog</span>
+                            <span class="stat-label">Stok Aktif di Katalog</span>
                             <span class="stat-value" id="stat-total-books">0 Unit</span>
                         </div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-card-clickable" role="button" tabindex="0" onclick="showAdminSection('users-section')">
                         <div class="stat-icon dark"><i class="fa-solid fa-user-group"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Pengguna Terdaftar</span>
                             <span class="stat-value" id="stat-total-users">0 Akun</span>
                         </div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-card-clickable" id="kpi-pending-qc-card" role="button" tabindex="0" onclick="handlePendingQcKpiClick()">
                         <div class="stat-icon green"><i class="fa-solid fa-hand-holding-hand"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label">Antrean Titip Jual</span>
+                            <span class="stat-label">Buku Titip Jual Menunggu</span>
                             <span class="stat-value" id="stat-pending-qc">0 Buku</span>
                         </div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-card-clickable" role="button" tabindex="0" onclick="showAdminSection('orders-admin')">
                         <div class="stat-icon red"><i class="fa-solid fa-rupiah-sign"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label">Pendapatan Bulan Ini</span>
+                            <span class="stat-label">Omzet Bulan Ini</span>
                             <span class="stat-value" id="stat-monthly-revenue">Rp 0</span>
                         </div>
                     </div>
@@ -159,144 +298,163 @@
 
                 <div class="content-card">
                     <div class="card-title-bar">
-                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Aktivitas Transaksi Terbaru</h3>
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Transaksi Pembeli Terbaru</h3>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID Transaksi</th>
-                                <th>Pembeli</th>
-                                <th>Buku</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-transactions-body">
-                            <tr>
-                                <td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Memuat aktivitas transaksi dari database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll-wrap">
+                        <table class="data-table" style="min-width: 720px;">
+                            <thead>
+                                <tr>
+                                    <th>No. Pesanan</th>
+                                    <th>Pembeli</th>
+                                    <th>Judul Buku</th>
+                                    <th>Total Bayar</th>
+                                    <th>Status Pengiriman</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-transactions-body">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Memuat transaksi pembeli...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 2: KELOLA STOK & INVENTORY OMNICHANNEL (TERHUBUNG DATABASE SUPABASE) -->
+            <!-- 2. KELOLA STOK & PRODUK -->
             <div id="inventory-section" class="dashboard-section">
-                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div>
-                        <h2>Dashboard Omnichannel Inventory LITERA</h2>
-                        <p>Single Source of Truth (Terhubung Langsung Database Supabase)</p>
+                        <h2>Kelola Stok & Produk Katalog</h2>
+                        <p>Atur status ketersediaan buku <strong>READY / SOLD OUT</strong> untuk katalog dan pembayaran.</p>
                     </div>
-                    <button class="btn-success-sm" style="padding: 0.5rem 0.8rem; font-size: 0.75rem; cursor: pointer;" onclick="toggleAddBookModal(true)">
-                        <i class="fa-solid fa-plus"></i> Tambah Stok Buku
+                    <button type="button" class="btn-commerce-primary" onclick="toggleAddBookModal(true)">
+                        <i class="fa-solid fa-plus"></i> Tambah Buku
                     </button>
                 </div>
 
                 <div class="content-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>JUDUL & PENULIS</th>
-                                <th>KATEGORI</th>
-                                <th>GRADE KONDISI</th>
-                                <th>HARGA</th>
-                                <th>STOK SINGLE-SOURCE</th>
-                                <th>AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body">
-                            <tr>
-                                <td colspan="6" style="text-align:center; padding: 1.5rem; color:#666;">Memuat data stok buku dari database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll-wrap">
+                        <table class="data-table" style="min-width: 780px;">
+                            <thead>
+                                <tr>
+                                    <th>JUDUL & PENULIS</th>
+                                    <th>KATEGORI</th>
+                                    <th>GRADE KONDISI</th>
+                                    <th>HARGA</th>
+                                    <th>STATUS STOK (READY / SOLD OUT)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding: 1.5rem; color:#666;">Memuat stok katalog...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 3: VERIFIKASI QC BUKU TITIP JUAL (TERHUBUNG DATABASE SUPABASE) -->
+            <!-- 3. KURASI & PEMERIKSAAN BUKU TITIPAN -->
             <div id="qc-section" class="dashboard-section">
-                <div class="section-header">
-                    <h2>Verifikasi Quality Control (QC) Buku Titipan</h2>
-                    <p>Periksa kondisi fisik dan setujui buku yang diajukan oleh pengguna untuk dijual.</p>
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2>Kurasi & Pemeriksaan Buku Titipan (QC)</h2>
+                        <p>Periksa kelayakan buku yang dititipkan pengguna. Status yang disetujui otomatis tampil di katalog & dashboard pengguna.</p>
+                    </div>
+                    <button type="button" class="btn-commerce-primary" onclick="toggleAddQcModal(true)">
+                        <i class="fa-solid fa-plus"></i> Tambah Titip Jual (QC)
+                    </button>
                 </div>
 
                 <div class="content-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Pengaju</th>
-                                <th>Judul Buku</th>
-                                <th>Kondisi Fisik</th>
-                                <th>Harga Rekomendasi</th>
-                                <th>Aksi Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="qc-table-body">
-                            <tr>
-                                <td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Memuat antrean verifikasi QC dari database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll-wrap">
+                        <table class="data-table" style="min-width: 740px;">
+                            <thead>
+                                <tr>
+                                    <th>Pengaju Titip Jual</th>
+                                    <th>Judul Buku & Kategori</th>
+                                    <th>Kondisi & Kelengkapan</th>
+                                    <th>Harga Jual</th>
+                                    <th>Status Pemeriksaan</th>
+                                    <th>Keputusan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="qc-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Memuat daftar pemeriksaan buku titipan...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 4: KELOLA PESANAN (TERHUBUNG DATABASE SUPABASE) -->
+            <!-- 4. PESANAN MASUK & PELACAKAN PENGIRIMAN (SESUAI DATABASE orders) -->
             <div id="orders-admin" class="dashboard-section">
                 <div class="section-header">
-                    <h2>Manajemen Pesanan & Pengiriman</h2>
-                    <p>Perbarui status resi pengiriman kurir untuk pesanan buku pelanggan.</p>
+                    <div>
+                        <h2>Kelola Pesanan Masuk & Pengiriman</h2>
+                        <p>Data pesanan disinkronkan langsung dari database <strong>orders</strong>. Ubah nomor pesanan, resi, atau tahap pengiriman lalu klik Simpan.</p>
+                    </div>
                 </div>
                 <div class="content-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID Pesanan</th>
-                                <th>Pelanggan</th>
-                                <th>Total Bayar</th>
-                                <th>No. Resi</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table-body">
-                            <tr>
-                                <td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Memuat data pesanan dari database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll-wrap">
+                        <table class="data-table" style="min-width: 780px;">
+                            <thead>
+                                <tr>
+                                    <th>No. Pesanan</th>
+                                    <th>Pembeli</th>
+                                    <th>Total Pembayaran</th>
+                                    <th>No. Resi Pengiriman</th>
+                                    <th>Tahap Pengiriman</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Memuat pesanan masuk dari database...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 5: DATA PENGGUNA (TERHUBUNG DATABASE SUPABASE) -->
+            <!-- 5. DAFTAR PEMBELI & ANGGOTA -->
             <div id="users-section" class="dashboard-section">
                 <div class="section-header">
-                    <h2>Daftar Pengguna Terdaftar</h2>
-                    <p>Kelola hak akses dan informasi akun seluruh anggota Litera.</p>
+                    <div>
+                        <h2>Daftar Pengguna & Pembeli Terdaftar</h2>
+                        <p>Data akun yang terhubung dengan layanan katalog, titip jual, dan riwayat pesanan.</p>
+                    </div>
                 </div>
                 <div class="content-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Lengkap</th>
-                                <th>Email Akademik</th>
-                                <th>Wilayah</th>
-                                <th>Status Akun</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body">
-                            <tr>
-                                <td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Memuat data pengguna dari database...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll-wrap">
+                        <table class="data-table" style="min-width: 640px;">
+                            <thead>
+                                <tr>
+                                    <th>Nama Lengkap</th>
+                                    <th>Email</th>
+                                    <th>Wilayah</th>
+                                    <th>Status Akun</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr>
+                                    <td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Memuat data pengguna...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 6: PENGATURAN WEBSITE -->
+            <!-- 6. PENGATURAN WEBSITE (SEMUA KOLOM UTUH + LOGO/FAVICON BISA LANGSUNG DIUBAH) -->
             <div id="settings-section" class="dashboard-section">
                 <div class="section-header">
                     <h2>Pengaturan Konfigurasi Website</h2>
-                    <p>Kelola identitas platform, aset logo, sosial media, dan konfigurasi server SMTP Email.</p>
+                    <p>Kelola identitas platform, aset logo & favicon (bisa langsung diubah kapan saja tanpa mengisi kolom lain), sosial media, dan SMTP Email.</p>
                 </div>
 
                 <div class="content-card">
@@ -304,50 +462,50 @@
                         <h4 style="margin-bottom: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
                             <i class="fa-solid fa-building"></i> Identitas Organisasi & Kontak
                         </h4>
-                        <div class="form-grid" style="margin-bottom: 1.5rem;">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
                             <div class="input-group">
-                                <label><i class="fa-solid fa-heading"></i> Nama Organisasi (`nama_organisasi`)</label>
+                                <label><i class="fa-solid fa-heading"></i> Nama Organisasi</label>
                                 <input type="text" id="setting-nama-organisasi" placeholder="LITERA Hub">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-quote-left"></i> Tagline Website (`tagline`)</label>
+                                <label><i class="fa-solid fa-quote-left"></i> Tagline Website</label>
                                 <input type="text" id="setting-tagline" placeholder="Digital Library & Hub" value="Digital Library & Hub">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-phone"></i> Nomor Telepon (`no_telp`)</label>
+                                <label><i class="fa-solid fa-phone"></i> Nomor Telepon</label>
                                 <input type="text" id="setting-no-telp" placeholder="081234567890">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-envelope"></i> Email Resmi (`email`)</label>
+                                <label><i class="fa-solid fa-envelope"></i> Email Resmi</label>
                                 <input type="email" id="setting-email" placeholder="admin@litera.app">
                             </div>
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label><i class="fa-solid fa-copyright"></i> Teks Copyright Footer (`copyright_text`)</label>
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-copyright"></i> Teks Copyright Footer</label>
                                 <input type="text" id="setting-copyright-text" placeholder="© 2026 LITERA. All Rights Reserved." value="© 2026 LITERA. All Rights Reserved.">
                             </div>
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label><i class="fa-solid fa-location-dot"></i> Alamat (`alamat`)</label>
-                                <textarea id="setting-alamat" rows="2" placeholder="Jl. Pettarani No. 10, Kota Makassar..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-location-dot"></i> Alamat</label>
+                                <textarea id="setting-alamat" rows="2" placeholder="Jl. Pettarani No. 10, Kota Makassar..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;"></textarea>
                             </div>
                         </div>
 
                         <h4 style="margin-bottom: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
-                            <i class="fa-solid fa-image"></i> Media & Branding (`logo` & `favicon`)
+                            <i class="fa-solid fa-image"></i> Media & Branding (Logo & Favicon)
                         </h4>
-                        <div class="form-grid" style="margin-bottom: 1.5rem;">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
                             <div class="input-group">
-                                <label><i class="fa-solid fa-file-image"></i> Logo Utama (`logo`)</label>
-                                <input type="file" id="setting-logo" accept="image/*" style="padding: 0.3rem;" onchange="previewSettingImage(event, 'preview-setting-logo', 'admin-brand-logo-img')">
+                                <label><i class="fa-solid fa-file-image"></i> Logo Utama</label>
+                                <input type="file" id="setting-logo" accept="image/*" style="padding: 0.3rem;" onchange="handleImmediateBrandingChange(event, 'logo')">
                                 <img id="preview-setting-logo" src="../foto/logo.jpeg" alt="Preview Logo" style="margin-top: 0.5rem; width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-icons"></i> Favicon Website (`favicon`)</label>
-                                <input type="file" id="setting-favicon" accept="image/*" style="padding: 0.3rem;" onchange="previewSettingImage(event, 'preview-setting-favicon', 'admin-dynamic-favicon')">
+                                <label><i class="fa-solid fa-icons"></i> Favicon Website</label>
+                                <input type="file" id="setting-favicon" accept="image/*" style="padding: 0.3rem;" onchange="handleImmediateBrandingChange(event, 'favicon')">
                                 <img id="preview-setting-favicon" src="../foto/logo.jpeg" alt="Preview Favicon" style="margin-top: 0.5rem; width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
                             </div>
-                            <div style="grid-column: span 2;">
-                                <button type="button" id="btn-save-branding-only" class="btn-secondary-sm" onclick="saveBrandingOnly()" style="cursor: pointer;">
-                                    <i class="fa-solid fa-image"></i> Simpan Logo & Favicon Saja (Tanpa Mengisi Kolom Lain)
+                            <div style="grid-column: 1 / -1;">
+                                <button type="button" id="btn-save-branding-only" class="btn-secondary-sm" onclick="saveBrandingOnly()" style="cursor: pointer; min-height: 38px; padding: 0.45rem 0.9rem; border-radius: 8px;">
+                                    <i class="fa-solid fa-image"></i> Simpan Logo & Favicon Saja
                                 </button>
                             </div>
                         </div>
@@ -355,29 +513,29 @@
                         <h4 style="margin-bottom: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
                             <i class="fa-solid fa-share-nodes"></i> Tautan Media Sosial & Lokasi
                         </h4>
-                        <div class="form-grid" style="margin-bottom: 1.5rem;">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
                             <div class="input-group">
-                                <label><i class="fa-brands fa-instagram"></i> Link Instagram (`link_instagram`)</label>
+                                <label><i class="fa-brands fa-instagram"></i> Link Instagram</label>
                                 <input type="url" id="setting-link-instagram" placeholder="https://instagram.com/litera_app">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-brands fa-facebook"></i> Link Facebook (`link_facebook`)</label>
+                                <label><i class="fa-brands fa-facebook"></i> Link Facebook</label>
                                 <input type="url" id="setting-link-facebook" placeholder="https://facebook.com/litera">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-brands fa-tiktok"></i> Link TikTok (`link_tiktok`)</label>
+                                <label><i class="fa-brands fa-tiktok"></i> Link TikTok</label>
                                 <input type="url" id="setting-link-tiktok" placeholder="https://tiktok.com/@litera">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-brands fa-youtube"></i> Link YouTube (`link_youtube`)</label>
+                                <label><i class="fa-brands fa-youtube"></i> Link YouTube</label>
                                 <input type="url" id="setting-link-youtube" placeholder="https://youtube.com/@litera">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-brands fa-linkedin"></i> Link LinkedIn (`link_linkedin`)</label>
+                                <label><i class="fa-brands fa-linkedin"></i> Link LinkedIn</label>
                                 <input type="url" id="setting-link-linkedin" placeholder="https://linkedin.com/company/litera">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-map-location-dot"></i> Link Google Maps (`link_maps`)</label>
+                                <label><i class="fa-solid fa-map-location-dot"></i> Link Google Maps</label>
                                 <input type="url" id="setting-link-maps" placeholder="https://maps.google.com/?q=...">
                             </div>
                         </div>
@@ -385,31 +543,31 @@
                         <h4 style="margin-bottom: 1rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
                             <i class="fa-solid fa-server"></i> Konfigurasi SMTP Email Gateway
                         </h4>
-                        <div class="form-grid">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                             <div class="input-group">
-                                <label><i class="fa-solid fa-network-wired"></i> SMTP Host (`smtp_host`)</label>
+                                <label><i class="fa-solid fa-network-wired"></i> SMTP Host</label>
                                 <input type="text" id="setting-smtp-host" value="smtp.gmail.com">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-plug"></i> SMTP Port (`smtp_port`)</label>
+                                <label><i class="fa-solid fa-plug"></i> SMTP Port</label>
                                 <input type="number" id="setting-smtp-port" value="587">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-user-lock"></i> SMTP User / Email (`smtp_user`)</label>
+                                <label><i class="fa-solid fa-user-lock"></i> SMTP User / Email</label>
                                 <input type="email" id="setting-smtp-user" placeholder="no-reply@litera.app">
                             </div>
                             <div class="input-group">
-                                <label><i class="fa-solid fa-key"></i> SMTP Password (`smtp_password`)</label>
+                                <label><i class="fa-solid fa-key"></i> SMTP Password</label>
                                 <input type="password" id="setting-smtp-password" placeholder="••••••••••••">
                             </div>
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label><i class="fa-solid fa-paper-plane"></i> SMTP From Email (`smtp_from_email`)</label>
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-paper-plane"></i> SMTP From Email</label>
                                 <input type="email" id="setting-smtp-from-email" placeholder="no-reply@litera.app">
                             </div>
                         </div>
 
                         <div class="form-actions" style="margin-top: 1.5rem;">
-                            <button type="submit" id="btn-save-settings" class="btn-submit">
+                            <button type="submit" id="btn-save-settings" class="btn-submit" style="cursor: pointer; min-height: 42px;">
                                 <i class="fa-solid fa-floppy-disk"></i>
                                 <span>Simpan Pengaturan WebSetting</span>
                             </button>
@@ -418,11 +576,13 @@
                 </div>
             </div>
 
-            <!-- SECTION 7: PERBARUI PROFIL ADMIN -->
+            <!-- 7. PROFIL PENGELOLA -->
             <div id="admin-profile-section" class="dashboard-section">
                 <div class="section-header">
-                    <h2>Perbarui Profil Administrator</h2>
-                    <p>Ubah kredensial, informasi kontak, dan foto profil admin utama.</p>
+                    <div>
+                        <h2>Profil Pengelola Toko</h2>
+                        <p>Perbarui nama tampilan, email, nomor kontak, dan foto profil pengelola.</p>
+                    </div>
                 </div>
 
                 <div class="content-card">
@@ -430,34 +590,34 @@
                         <div class="avatar-edit-box">
                             <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar" class="avatar-preview" id="admin-preview-img">
                             <div class="avatar-edit-info">
-                                <h4>Foto Profil Admin</h4>
-                                <p>Gunakan foto resmi berukuran maksimal 2MB.</p>
+                                <h4>Foto Profil Pengelola</h4>
+                                <p>Gunakan foto jelas berukuran maksimal 2MB.</p>
                                 <input type="file" id="admin-file-input" accept="image/*" style="display: none;" onchange="previewAdminPhoto(event)">
-                                <button type="button" class="btn-secondary-sm" onclick="document.getElementById('admin-file-input').click();">Ganti Foto</button>
+                                <button type="button" class="btn-secondary-sm" onclick="document.getElementById('admin-file-input').click();" style="cursor: pointer; min-height: 36px; padding: 0.4rem 0.8rem; border-radius: 8px;">Ganti Foto</button>
                             </div>
                         </div>
 
-                        <div class="form-grid">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                             <div class="input-group">
-                                <label><i class="fa-solid fa-user"></i> Nama Admin</label>
+                                <label><i class="fa-solid fa-user"></i> Nama Pengelola</label>
                                 <input type="text" id="admin-name" value="Super Admin" required>
                             </div>
 
                             <div class="input-group">
-                                <label><i class="fa-solid fa-envelope"></i> Email Admin</label>
+                                <label><i class="fa-solid fa-envelope"></i> Email Pengelola</label>
                                 <input type="email" id="admin-email" value="admin@litera.app" required>
                             </div>
 
-                            <div class="input-group" style="grid-column: span 2;">
+                            <div class="input-group" style="grid-column: 1 / -1;">
                                 <label><i class="fa-solid fa-phone"></i> Nomor Kontak / WhatsApp</label>
                                 <input type="text" id="admin-phone" value="081199887766" required>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn-submit">
+                            <button type="submit" class="btn-submit" style="cursor: pointer; min-height: 42px;">
                                 <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Simpan Perubahan Profil Admin</span>
+                                <span>Simpan Profil</span>
                             </button>
                         </div>
                     </form>
@@ -467,37 +627,75 @@
         </main>
     </div>
 
-    <!-- MODAL POP-UP FORM TAMBAH / EDIT STOK BUKU -->
-    <div id="modal-add-book" class="modal-overlay hidden-modal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modal-title-text"><i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru ke Database Supabase</h3>
-                <button type="button" class="modal-close" onclick="toggleAddBookModal(false)"><i class="fa-solid fa-xmark"></i></button>
+    <!-- MODAL TAMBAH TITIP JUAL KE QC -->
+    <div id="modal-add-qc" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); justify-content: center; align-items: center; z-index: 1000; padding: 1rem;">
+        <div style="background: #ffffff; width: 100%; max-width: 560px; border-radius: 14px; padding: 1.5rem; box-shadow: 0 20px 35px rgba(0,0,0,0.22);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <h3 style="margin: 0;"><i class="fa-solid fa-clipboard-check"></i> Tambah Data Titip Jual ke QC</h3>
+                <button type="button" onclick="toggleAddQcModal(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
-            <form id="form-add-book" onsubmit="handleAddBookSubmit(event)">
-                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                    <img src="https://via.placeholder.com/120x150?text=Cover" id="book-cover-preview" style="width: 100px; height: 130px; object-fit: cover; border-radius: 6px; border: 1px dashed #ccc;">
+            <form id="form-add-qc" onsubmit="handleManualQcSubmit(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; font-size: 0.82rem;">
                     <div>
-                        <h4 style="font-size: 0.875rem;">Upload Foto Cover Sampul</h4>
-                        <p style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem;">Pilih foto fisik asli buku (Maks. 5MB).</p>
-                        <input type="file" id="book-file-input" accept="image/*" style="display: none;" onchange="previewBookCoverPhoto(event)">
-                        <button type="button" class="btn-secondary-sm" onclick="document.getElementById('book-file-input').click();">Pilih Foto Sampul</button>
+                        <label style="font-weight: 600; display: block;">Nama Pengaju</label>
+                        <input type="text" id="qc-submitter" placeholder="Contoh: Nabila" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.8125rem;">
                     <div>
                         <label style="font-weight: 600; display: block;">Judul Buku</label>
-                        <input type="text" id="prod-title" placeholder="Contoh: Let Them Theory" required style="width: 100%; padding: 0.4rem;">
-                    </div>
-                    <div>
-                        <label style="font-weight: 600; display: block;">Penulis / Pengarang</label>
-                        <input type="text" id="prod-author" placeholder="Contoh: Mel Robbins" required style="width: 100%; padding: 0.4rem;">
+                        <input type="text" id="qc-book-title" placeholder="Contoh: Atomic Habits" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     </div>
                     <div>
                         <label style="font-weight: 600; display: block;">Kategori</label>
-                        <select id="prod-category" style="width: 100%; padding: 0.4rem;" required>
+                        <input type="text" id="qc-category" value="Filsafat" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block;">Harga Jual (Rp)</label>
+                        <input type="number" id="qc-price" value="55000" min="0" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; display: block;">Kondisi & Kelengkapan</label>
+                        <input type="text" id="qc-condition" value="Grade A (Mulus), halaman lengkap" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" onclick="toggleAddQcModal(false)" style="padding: 0.5rem 1rem; border: none; background: #eee; border-radius: 6px; cursor: pointer;">Batal</button>
+                    <button type="submit" id="btn-submit-qc" class="btn-commerce-primary">Simpan ke Antrean QC</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH BUKU KE KATALOG -->
+    <div id="modal-add-book" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); justify-content: center; align-items: center; z-index: 1000; padding: 1rem;">
+        <div style="background: #ffffff; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; border-radius: 14px; padding: 1.5rem; box-shadow: 0 20px 35px rgba(0,0,0,0.22); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <h3 id="modal-title-text" style="margin: 0;"><i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru ke Katalog</h3>
+                <button type="button" onclick="toggleAddBookModal(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666; min-width: 36px; min-height: 36px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="form-add-book" onsubmit="handleAddBookSubmit(event)">
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <img src="https://via.placeholder.com/120x150?text=Cover" id="book-cover-preview" style="width: 100px; height: 130px; object-fit: cover; border-radius: 6px; border: 1px dashed #ccc;">
+                    <div>
+                        <h4 style="font-size: 0.875rem; margin: 0 0 0.25rem;">Upload Foto Sampul Buku</h4>
+                        <p style="font-size: 0.75rem; color: #666; margin-bottom: 0.5rem;">Pilih foto fisik buku (Maks. 5MB).</p>
+                        <input type="file" id="book-file-input" accept="image/*" style="display: none;" onchange="previewBookCoverPhoto(event)">
+                        <button type="button" class="btn-secondary-sm" onclick="document.getElementById('book-file-input').click();" style="cursor: pointer; min-height: 36px; padding: 0.4rem 0.8rem; border-radius: 8px;">Pilih Foto Sampul</button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.8125rem;">
+                    <div>
+                        <label style="font-weight: 600; display: block;">Judul Buku</label>
+                        <input type="text" id="prod-title" placeholder="Contoh: Let Them Theory" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block;">Penulis / Pengarang</label>
+                        <input type="text" id="prod-author" placeholder="Contoh: Mel Robbins" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block;">Kategori</label>
+                        <select id="prod-category" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; box-sizing: border-box;" required>
                             <option value="Fiksi">Novel & Fiksi</option>
                             <option value="Filsafat">Filsafat & Self-Improvement</option>
                             <option value="Agama">Agama & Studi Islam</option>
@@ -506,63 +704,905 @@
                     </div>
                     <div>
                         <label style="font-weight: 600; display: block;">Grade Kondisi</label>
-                        <select id="prod-grade" style="width: 100%; padding: 0.4rem;" required>
-                            <option value="Grade A (Mulus)">Grade A (Mulus / Pre-loved Like New)</option>
-                            <option value="Grade B+ (Layak Baca)">Grade B+ (Layak Baca / Lekuk Tipis)</option>
-                            <option value="Grade B (Layak)">Grade B (Coretan Tipis / Terawat)</option>
+                        <select id="prod-grade" style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; box-sizing: border-box;" required>
+                            <option value="Grade A (Mulus)">Grade A (Mulus / Like New)</option>
+                            <option value="Grade B+ (Layak Baca)">Grade B+ (Layak Baca)</option>
+                            <option value="Grade B (Layak)">Grade B (Layak / Terawat)</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600; display: block;">Harga (Rp)</label>
-                        <input type="text" id="prod-price" placeholder="65000" required style="width: 100%; padding: 0.4rem;">
+                        <label style="font-weight: 600; display: block;">Harga Jual (Rp)</label>
+                        <input type="text" id="prod-price" placeholder="65000" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block;">Jumlah Stok (0 = HABIS TERJUAL)</label>
+                        <input type="number" min="0" step="1" id="prod-stock" value="1" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     </div>
                     <div>
                         <label style="font-weight: 600; display: block;">Rating Awal (1 - 5)</label>
-                        <input type="number" step="0.1" min="1" max="5" id="prod-rating" value="4.8" required style="width: 100%; padding: 0.4rem;">
+                        <input type="number" step="0.1" min="1" max="5" id="prod-rating" value="4.8" required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     </div>
-                    <div style="grid-column: span 2;">
-                        <label style="font-weight: 600; display: block;">Deskripsi Detail Buku</label>
-                        <textarea id="prod-desc" rows="3" placeholder="Tuliskan penerbit dan kelengkapan fisik buku..." required style="width: 100%; padding: 0.4rem;"></textarea>
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-weight: 600; display: block;">Deskripsi Produk</label>
+                        <textarea id="prod-desc" rows="3" placeholder="Tuliskan penerbit dan kondisi fisik buku..." required style="width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;"></textarea>
                     </div>
                 </div>
 
-                <div style="margin-top: 1rem; text-align: right;">
-                    <button type="button" onclick="toggleAddBookModal(false)" style="padding: 0.5rem 1rem; border: none; background: #eee; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;">Batal</button>
-                    <button type="submit" class="btn-submit" style="padding: 0.5rem 1rem; cursor: pointer;">Simpan ke Database</button>
+                <div style="margin-top: 1rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem;">
+                    <button type="button" onclick="toggleAddBookModal(false)" style="padding: 0.5rem 1rem; border: none; background: #eee; border-radius: 6px; cursor: pointer; min-height: 38px;">Batal</button>
+                    <button type="submit" class="btn-commerce-primary">Simpan Produk</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- SCRIPT INTERACTIVE & REST API BACKEND SUPABASE -->
     <script>
-        function getApiBaseUrl() {
-            const origin = window.location.origin;
-            if (!origin || origin === 'null' || window.location.protocol === 'file:') {
-                return 'http://localhost:3000';
+        const BACKEND_API_BASE = window.LITERA_BACKEND_API || '/api';
+        const SUPABASE_PROJECT_URL = 'https://ygtbxmhslohgofwwksjt.supabase.co';
+        const SUPABASE_DEFAULT_KEY = 'sb_publishable_ayyZ90SPYFKdWuuliWMr9g_GxUOxA9t';
+        const literaBroadcastChannel = (typeof BroadcastChannel !== 'undefined')
+            ? new BroadcastChannel('litera_sync')
+            : null;
+
+        function extractRowsPayload(payload) {
+            if (Array.isArray(payload)) return payload;
+            if (!payload || typeof payload !== 'object') return null;
+            for (const k of ['data', 'rows', 'items', 'results', 'books', 'qc', 'qc_books', 'orders', 'users', 'settings']) {
+                if (Array.isArray(payload[k])) return payload[k];
+                if (payload[k] && typeof payload[k] === 'object') return [payload[k]];
             }
-            return origin;
+            return null;
+        }
+
+        async function backendApiRequest(resource, { method = 'GET', body = null, id = null } = {}) {
+            const cleanBase = String(BACKEND_API_BASE).replace(/\/+$/, '');
+            const cleanRes = String(resource).replace(/^\/+/, '');
+            const url = id !== null && id !== undefined && String(id) !== ''
+                ? `${cleanBase}/${cleanRes}/${encodeURIComponent(String(id))}`
+                : `${cleanBase}/${cleanRes}`;
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const res = await fetch(url, {
+                    method,
+                    cache: 'no-store',
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: body ? JSON.stringify(body) : undefined
+                });
+                if (!res.ok) return null;
+                const json = await res.json().catch(() => null);
+                const rows = extractRowsPayload(json);
+                return rows !== null ? rows : json;
+            } catch (_) {
+                return null;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function broadcastCatalogUpdate(booksList) {
+            const stockStatusMap = {};
+            (Array.isArray(booksList) ? booksList : []).forEach(b => {
+                if (!b || !b.title) return;
+                const isReady = isBookReadyFromStatusAndStock(b);
+                const stockQty = isReady ? Math.max(1, Number(b.Stok ?? b.stok ?? b.stock ?? 1)) : 0;
+                const statusLabel = mapStatusToDbLabel(isReady);
+                stockStatusMap[String(b.title).trim().toLowerCase()] = {
+                    id: b.id,
+                    title: b.title,
+                    ready: isReady,
+                    stock: stockQty,
+                    Stok: stockQty,
+                    Status: statusLabel,
+                    status: statusLabel
+                };
+            });
+
+            try {
+                localStorage.setItem('litera_books_cache', JSON.stringify(booksList));
+                localStorage.setItem('litera_catalog_books', JSON.stringify(booksList));
+                localStorage.setItem('litera_book_stock_status', JSON.stringify(stockStatusMap));
+            } catch (_) {}
+            window.dispatchEvent(new CustomEvent('litera:catalog-updated', { detail: booksList }));
+            if (literaBroadcastChannel) {
+                try {
+                    literaBroadcastChannel.postMessage({
+                        type: 'catalog-updated',
+                        books: booksList,
+                        stockStatusMap,
+                        ts: Date.now()
+                    });
+                } catch (_) {}
+            }
+        }
+
+        function getSupabaseConfig() {
+            try {
+                const winCfg = window.LITERA_SUPABASE || window.SUPABASE_CONFIG || {};
+                const storedCfg = JSON.parse(localStorage.getItem('litera_supabase_config') || '{}');
+                const key = winCfg.anonKey || winCfg.key || storedCfg.anonKey || storedCfg.key || SUPABASE_DEFAULT_KEY;
+                const url = winCfg.url || storedCfg.url || SUPABASE_PROJECT_URL;
+                return { url: String(url).replace(/\/+$/, ''), key: String(key).trim() };
+            } catch (_) {
+                return { url: SUPABASE_PROJECT_URL, key: SUPABASE_DEFAULT_KEY };
+            }
+        }
+
+        async function supabaseRestRequest(table, { method = 'GET', body = null, matchColumn = 'id', matchValue = null } = {}) {
+            const backendTableMap = {
+                books: 'books',
+                users: 'users',
+                qc_books: 'qc',
+                orders: 'orders',
+                web_settings: 'settings'
+            };
+            const apiResource = backendTableMap[table] || table;
+            const hasId = matchValue !== null && matchValue !== undefined && String(matchValue) !== '';
+
+            if (method === 'GET') {
+                const apiRows = await backendApiRequest(apiResource, { method: 'GET' });
+                if (Array.isArray(apiRows)) return apiRows;
+            } else if (method === 'POST') {
+                const apiCreated = await backendApiRequest(apiResource, { method: 'POST', body });
+                if (apiCreated) return Array.isArray(apiCreated) ? apiCreated : [apiCreated];
+            } else if ((method === 'PATCH' || method === 'PUT') && hasId) {
+                const apiUpdated = await backendApiRequest(apiResource, {
+                    method: 'PATCH',
+                    id: matchValue,
+                    body
+                });
+                if (apiUpdated) return Array.isArray(apiUpdated) ? apiUpdated : [apiUpdated];
+            }
+
+            const cfg = getSupabaseConfig();
+            if (!cfg || !cfg.url || !cfg.key) return null;
+
+            let endpoint = `${cfg.url}/rest/v1/${table}`;
+            if (method === 'GET') {
+                endpoint += `?select=*`;
+            } else if ((method === 'PATCH' || method === 'PUT' || method === 'DELETE') && matchValue !== null && matchValue !== undefined) {
+                endpoint += `?${encodeURIComponent(matchColumn)}=eq.${encodeURIComponent(String(matchValue))}`;
+            }
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: method === 'PUT' ? 'PATCH' : method,
+                    cache: 'no-store',
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': cfg.key,
+                        'Authorization': `Bearer ${cfg.key}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: body ? JSON.stringify(body) : undefined
+                });
+
+                if (!res.ok) return null;
+                return await res.json().catch(() => null);
+            } catch (_) {
+                return null;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function mapStatusToDbLabel(isReady) {
+            return isReady ? 'SIAP' : 'HABIS TERJUAL';
+        }
+
+        function isBookReadyFromStatusAndStock(book) {
+            const rawStock = Number(book.Stok ?? book.stok ?? book.stock ?? book.quantity ?? 0);
+            const safeStock = Number.isFinite(rawStock) && rawStock >= 0 ? Math.floor(rawStock) : 0;
+            const statusText = String(book.Status ?? book.status ?? book.availability ?? '').trim().toUpperCase();
+
+            if (['HABIS TERJUAL', 'SOLD OUT', 'SOLDOUT', 'TIDAK SIAP', 'HABIS', 'KOSONG', 'FALSE', '0'].includes(statusText)) {
+                return false;
+            }
+            if (['SIAP', 'READY', 'TERSEDIA', 'TRUE', '1'].includes(statusText)) {
+                return safeStock > 0;
+            }
+            return safeStock > 0;
+        }
+
+        async function upsertBookToSupabase(bookObj) {
+            const safeStock = Math.max(0, Math.floor(Number(bookObj.Stok ?? bookObj.stok ?? bookObj.stock ?? 0) || 0));
+            const statusLabel = mapStatusToDbLabel(isBookReadyFromStatusAndStock({ ...bookObj, Stok: safeStock }));
+
+            const candidates = [
+                {
+                    title: bookObj.title,
+                    author: bookObj.author || '',
+                    category: bookObj.category || 'Umum',
+                    grade: bookObj.grade || 'Grade A (Mulus)',
+                    price: Number(bookObj.price || 0),
+                    Stok: safeStock,
+                    Status: statusLabel
+                },
+                {
+                    title: bookObj.title,
+                    author: bookObj.author || '',
+                    category: bookObj.category || 'Umum',
+                    grade: bookObj.grade || 'Grade A (Mulus)',
+                    price: Number(bookObj.price || 0),
+                    stok: safeStock,
+                    status: statusLabel
+                },
+                {
+                    title: bookObj.title,
+                    author: bookObj.author || '',
+                    category: bookObj.category || 'Umum',
+                    grade: bookObj.grade || 'Grade A (Mulus)',
+                    price: Number(bookObj.price || 0),
+                    stock: safeStock,
+                    status: statusLabel
+                }
+            ];
+
+            for (const bodyCandidate of candidates) {
+                if (bookObj.id !== null && bookObj.id !== undefined && String(bookObj.id) !== '') {
+                    const patched = await supabaseRestRequest('books', {
+                        method: 'PATCH',
+                        matchColumn: 'id',
+                        matchValue: bookObj.id,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(patched) && patched.length > 0) return patched[0];
+                }
+                if (bookObj.title) {
+                    const patchedByTitle = await supabaseRestRequest('books', {
+                        method: 'PATCH',
+                        matchColumn: 'title',
+                        matchValue: bookObj.title,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(patchedByTitle) && patchedByTitle.length > 0) return patchedByTitle[0];
+                }
+                const inserted = await supabaseRestRequest('books', {
+                    method: 'POST',
+                    body: bodyCandidate
+                });
+                if (Array.isArray(inserted) && inserted.length > 0) return inserted[0];
+            }
+            return null;
+        }
+
+        async function patchBookInSupabase(book, patchBody) {
+            const payloads = [
+                { Status: patchBody.Status, Stok: patchBody.Stok },
+                { status: patchBody.Status, stok: patchBody.Stok },
+                { status: patchBody.Status, stock: patchBody.Stok },
+                { Status: patchBody.Status },
+                { status: patchBody.Status },
+                { Stok: patchBody.Stok },
+                { stok: patchBody.Stok },
+                { stock: patchBody.Stok }
+            ];
+
+            for (const bodyCandidate of payloads) {
+                if (book.id !== null && book.id !== undefined && String(book.id) !== '') {
+                    const resById = await supabaseRestRequest('books', {
+                        method: 'PATCH',
+                        matchColumn: 'id',
+                        matchValue: book.id,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(resById) && resById.length > 0) return true;
+                }
+                if (book.title) {
+                    const resByTitle = await supabaseRestRequest('books', {
+                        method: 'PATCH',
+                        matchColumn: 'title',
+                        matchValue: book.title,
+                        body: bodyCandidate
+                    });
+                    if (Array.isArray(resByTitle) && resByTitle.length > 0) return true;
+                }
+            }
+            return Boolean(await upsertBookToSupabase({ ...book, ...patchBody }));
         }
 
         let uploadedCoverBase64 = null;
         let editingBookId = null;
         let booksCache = {};
+        let ordersCache = {};
+        let dbOrdersCache = [];
+        let qcItemsCache = [];
+        let usersCache = [];
         let currentSettingsCache = {};
+        let readAdminNotifIds = new Set();
+
+        const DEFAULT_CATALOG_BOOKS = [
+            { id: 1, title: 'Gadis Kretek', author: 'Ratih Kumala', category: 'Fiksi', grade: 'Grade A (Mulus)', price: 50000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 2, title: 'Hujan', author: 'Tere Liye', category: 'Fiksi', grade: 'Grade A (Mulus)', price: 50000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 3, title: 'Pulang', author: 'Leila S. Chudori', category: 'Fiksi', grade: 'Grade A (Mulus)', price: 60000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 4, title: 'Tentang Kamu', author: 'Tere Liye', category: 'Fiksi', grade: 'Grade B+ (Layak Baca)', price: 50000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 5, title: 'Filosofi Teras - Filsafat Yunani-Romawi Kuno', author: 'Henry Manampiring', category: 'Filsafat', grade: 'Grade A (Mulus)', price: 55000, Stok: 1, stok: 1, stock: 1, Status: 'SIAP', status: 'SIAP' },
+            { id: 6, title: 'Filsafat Sains - Dari Newton, Einstein hingga Sains-Data', author: 'Dimitri Mahayana', category: 'Filsafat', grade: 'Grade B (Layak)', price: 50000, Stok: 1, stok: 1, stock: 1, Status: 'SIAP', status: 'SIAP' },
+            { id: 7, title: 'Angel & Demon', author: 'Helena Abidin, Suhartono C., Timoteus T.', category: 'Bisnis', grade: 'Grade A (Mulus)', price: 50000, Stok: 1, stok: 1, stock: 1, Status: 'SIAP', status: 'SIAP' },
+            { id: 8, title: 'Animal Farm (Republik Hewan)', author: 'George Orwell', category: 'Fiksi', grade: 'Grade A (Mulus)', price: 45000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 9, title: 'Namaku Alam', author: 'Leila S. Chudori', category: 'Fiksi', grade: 'Grade A (Mulus)', price: 65000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' },
+            { id: 10, title: 'Risalah Kebangkitan - Penalaran terhadap Realitas Akhirat', author: 'Badiuzzaman Said Nursi', category: 'Agama', grade: 'Grade B+ (Layak Baca)', price: 50000, Stok: 0, stok: 0, stock: 0, Status: 'HABIS TERJUAL', status: 'HABIS TERJUAL' }
+        ];
+
+        try {
+            const savedRead = JSON.parse(localStorage.getItem('litera_admin_read_notifs') || '[]');
+            if (Array.isArray(savedRead)) readAdminNotifIds = new Set(savedRead);
+        } catch (_) {}
+
+        function persistAdminReadNotifs() {
+            try {
+                localStorage.setItem('litera_admin_read_notifs', JSON.stringify(Array.from(readAdminNotifIds)));
+            } catch (_) {}
+        }
+
+        const TRACKING_STAGES = [
+            'Pesanan Dibayar',
+            'Sedang Dikemas',
+            'Dalam Pengiriman',
+            'Pesanan Selesai'
+        ];
+
+        function normalizeTrackingStatus(rawStatus) {
+            const s = String(rawStatus || '').trim().toLowerCase();
+            if (s.includes('selesai')) return 'Pesanan Selesai';
+            if (s.includes('kirim')) return 'Dalam Pengiriman';
+            if (s.includes('kemas') || s.includes('packing') || s.includes('proses')) return 'Sedang Dikemas';
+            return 'Pesanan Dibayar';
+        }
+
+        function getOrderNoPesananFromDb(order) {
+            const raw = order.no_pesanan ?? order.invoice ?? order.order_number ?? order.kode_pesanan ?? '';
+            return String(raw).trim();
+        }
+
+        function getOrderResiFromDb(order) {
+            const raw = order.no_resi ?? order.tracking_number ?? order.awb ?? order.resi ?? '';
+            return String(raw).trim();
+        }
+
+        function getOrderTotalFromDb(order) {
+            const rawAmount = order.total ?? order.total_price ?? order.total_bayar ?? order.amount ?? order.price ?? 0;
+            const amount = Number(String(rawAmount).replace(/[^0-9.-]/g, ''));
+            return Number.isFinite(amount) && amount > 0 ? amount : 0;
+        }
+
+        function getOrderBuyerFromDb(order) {
+            return order.customer_name || order.buyer_name || order.user_name || order.nama_pembeli || order.nama || '-';
+        }
+
+        function getOrderItemsFromDb(order) {
+            return order.book_title || order.items || order.items_summary || order.judul_buku || '';
+        }
+
+        function isConsignmentRecord(record) {
+            if (!record) return false;
+            if (typeof record === 'string') {
+                return /^\[TITIP\s*JUAL\]/i.test(record.trim()) || /\btitip\s*jual\b/i.test(record);
+            }
+            if (typeof record !== 'object') return false;
+            const typeVal = String(record.type || record.jenis || record.submission_type || record.mode || '').toLowerCase();
+            if (typeVal.includes('titip') || typeVal.includes('consignment')) return true;
+            const textBlob = [
+                record.book_title,
+                record.title,
+                record.items,
+                record.items_summary,
+                record.description,
+                record.raw_text,
+                record.note
+            ].filter(Boolean).join(' ');
+            return /^\[TITIP\s*JUAL\]/i.test(textBlob.trim()) || /\btitip\s*jual\b/i.test(textBlob);
+        }
+
+        function syncOrderToUserDashboardStorage(order, noPesanan, trackingNumber, status) {
+            try {
+                const updatedOrder = {
+                    ...order,
+                    id: order.id || order.order_id,
+                    no_pesanan: noPesanan,
+                    invoice: noPesanan,
+                    no_resi: trackingNumber,
+                    awb: trackingNumber,
+                    tracking_number: trackingNumber,
+                    resi: trackingNumber,
+                    status: status,
+                    shipping_status: status,
+                    pengiriman: status,
+                    updated_at: order.updated_at || new Date().toISOString()
+                };
+
+                ['litera_orders', 'litera_user_orders', 'user_orders'].forEach(storageKey => {
+                    const rawList = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    const list = Array.isArray(rawList) ? rawList : [];
+                    const idx = list.findIndex(item =>
+                        (updatedOrder.id && (String(item.id) === String(updatedOrder.id) || String(item.order_id) === String(updatedOrder.id))) ||
+                        (noPesanan && (String(item.no_pesanan || '') === noPesanan || String(item.invoice || '') === noPesanan))
+                    );
+
+                    if (idx >= 0) {
+                        list[idx] = { ...list[idx], ...updatedOrder };
+                    } else if (updatedOrder.id) {
+                        list.unshift(updatedOrder);
+                    }
+
+                    localStorage.setItem(storageKey, JSON.stringify(list));
+                });
+
+                window.dispatchEvent(new CustomEvent('litera:order-updated', { detail: updatedOrder }));
+                if (literaBroadcastChannel) {
+                    try {
+                        literaBroadcastChannel.postMessage({
+                            type: 'order-updated',
+                            order: updatedOrder,
+                            ts: Date.now()
+                        });
+                    } catch (_) {}
+                }
+            } catch (err) {
+                console.warn('Gagal menyinkronkan pesanan ke dashboard pengguna:', err);
+            }
+        }
+
+        function normalizeQcStatusKey(rawStatus) {
+            const st = String(rawStatus || '').trim().toLowerCase();
+            if (!st) return 'pending';
+            if (['approved', 'di-acc', 'acc', 'disetujui', 'disetujui tayang', 'lolos', 'diterima', 'terima', 'siap'].includes(st)) {
+                return 'approved';
+            }
+            if (['rejected', 'ditolak', 'tidak acc', 'tidak disetujui', 'gagal qc', 'gagal', 'tolak'].includes(st)) {
+                return 'rejected';
+            }
+            return 'pending';
+        }
+
+        function syncQcToUserDashboardStorage(items) {
+            try {
+                const normalized = (Array.isArray(items) ? items : []).map(item => {
+                    const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
+                    const userStatusLabel = statusKey === 'approved'
+                        ? 'Disetujui'
+                        : (statusKey === 'rejected' ? 'Ditolak' : 'Dalam Pemeriksaan');
+                    return {
+                        ...item,
+                        status: statusKey,
+                        qc_status: userStatusLabel,
+                        examination_status: userStatusLabel,
+                        updated_at: item.updated_at || new Date().toISOString()
+                    };
+                });
+
+                ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
+                    localStorage.setItem(key, JSON.stringify(normalized));
+                });
+
+                window.dispatchEvent(new CustomEvent('litera:qc-updated', { detail: normalized }));
+                if (literaBroadcastChannel) {
+                    try {
+                        literaBroadcastChannel.postMessage({
+                            type: 'qc-updated',
+                            items: normalized,
+                            ts: Date.now()
+                        });
+                    } catch (_) {}
+                }
+            } catch (err) {
+                console.warn('Gagal menyinkronkan kurasi ke dashboard pengguna:', err);
+            }
+        }
+
+        async function syncApprovedQcBookToInventory(qcItem) {
+            const bookTitle = String(qcItem.book_title || qcItem.title || '').trim();
+            if (!bookTitle) return null;
+
+            const existingList = getMergedBooksListFromLocalAndDefault();
+            const titleKey = bookTitle.toLowerCase();
+            const foundIdx = existingList.findIndex(b => String(b.title).trim().toLowerCase() === titleKey);
+
+            const qcPrice = Number(qcItem.recommended_price ?? qcItem.price ?? 0) || 0;
+            const qcCategory = qcItem.category || 'Umum';
+            const qcGrade = qcItem.condition_note || qcItem.grade || 'Grade A (Mulus)';
+            const qcAuthor = qcItem.author || qcItem.submitter_name || 'Titip Jual';
+            const nowIso = new Date().toISOString();
+
+            let targetBook;
+            if (foundIdx >= 0) {
+                const prev = existingList[foundIdx];
+                const nextStock = Math.max(1, Number(prev.Stok ?? prev.stok ?? prev.stock ?? 0) + 1);
+                targetBook = normalizeBookRecord({
+                    ...prev,
+                    category: prev.category && prev.category !== 'Umum' ? prev.category : qcCategory,
+                    grade: prev.grade || qcGrade,
+                    price: qcPrice > 0 ? qcPrice : prev.price,
+                    Stok: nextStock,
+                    stok: nextStock,
+                    stock: nextStock,
+                    previous_stock: nextStock,
+                    Status: 'SIAP',
+                    status: 'SIAP',
+                    updated_at: nowIso
+                }, foundIdx);
+                existingList[foundIdx] = targetBook;
+            } else {
+                targetBook = normalizeBookRecord({
+                    id: Date.now(),
+                    title: bookTitle,
+                    author: qcAuthor,
+                    category: qcCategory,
+                    grade: qcGrade,
+                    price: qcPrice,
+                    Stok: 1,
+                    stok: 1,
+                    stock: 1,
+                    previous_stock: 1,
+                    Status: 'SIAP',
+                    status: 'SIAP',
+                    updated_at: nowIso
+                }, existingList.length);
+                existingList.unshift(targetBook);
+            }
+
+            booksCache[targetBook.id] = targetBook;
+            broadcastCatalogUpdate(existingList);
+            renderInventoryTableRows(existingList);
+
+            await upsertBookToSupabase(targetBook);
+            return targetBook;
+        }
+
+        async function insertOrUpdateQcInSupabase(entry) {
+            const statusKey = normalizeQcStatusKey(entry.status || entry.qc_status || entry.examination_status);
+            const payload = {
+                submitter_name: String(entry.submitter_name || entry.user_name || entry.customer_name || 'Pengguna Litera').trim(),
+                book_title: String(entry.book_title || entry.title || 'Buku Titipan').trim(),
+                condition_note: String(entry.condition_note || entry.grade || '-').trim(),
+                recommended_price: Number(entry.recommended_price ?? entry.price ?? 0) || 0,
+                status: statusKey
+            };
+
+            if (entry.id !== null && entry.id !== undefined && String(entry.id) !== '') {
+                const updated = await supabaseRestRequest('qc_books', {
+                    method: 'PATCH',
+                    matchColumn: 'id',
+                    matchValue: entry.id,
+                    body: payload
+                });
+                if (Array.isArray(updated) && updated.length > 0) return updated[0];
+            }
+
+            if (payload.book_title) {
+                const updatedByTitle = await supabaseRestRequest('qc_books', {
+                    method: 'PATCH',
+                    matchColumn: 'book_title',
+                    matchValue: payload.book_title,
+                    body: payload
+                });
+                if (Array.isArray(updatedByTitle) && updatedByTitle.length > 0) return updatedByTitle[0];
+            }
+
+            const inserted = await supabaseRestRequest('qc_books', {
+                method: 'POST',
+                body: payload
+            });
+            return Array.isArray(inserted) && inserted.length > 0 ? inserted[0] : null;
+        }
+
+        function toggleAddQcModal(show) {
+            const modal = document.getElementById('modal-add-qc');
+            if (!modal) return;
+            modal.style.display = show ? 'flex' : 'none';
+            if (show) {
+                document.getElementById('form-add-qc').reset();
+                document.getElementById('qc-category').value = 'Filsafat';
+                document.getElementById('qc-price').value = '55000';
+                document.getElementById('qc-condition').value = 'Grade A (Mulus), halaman lengkap';
+            }
+        }
+
+        async function handleManualQcSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btn-submit-qc');
+            const origHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            }
+
+            const entry = {
+                submitter_name: document.getElementById('qc-submitter').value.trim(),
+                book_title: document.getElementById('qc-book-title').value.trim(),
+                category: document.getElementById('qc-category').value.trim() || 'Umum',
+                recommended_price: Number(document.getElementById('qc-price').value) || 0,
+                condition_note: document.getElementById('qc-condition').value.trim() || '-',
+                status: 'pending'
+            };
+
+            try {
+                await insertOrUpdateQcInSupabase(entry);
+                const localList = collectAllConsignmentItems([]);
+                localList.unshift({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
+                syncQcToUserDashboardStorage(localList);
+
+                toggleAddQcModal(false);
+                await fetchQcQueueFromDB();
+                await fetchSystemStatsFromDB();
+                alert(`Buku titipan "${entry.book_title}" berhasil ditambahkan ke antrean QC.`);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origHtml;
+                }
+            }
+        }
+
+        function parseConsignmentEntry(rawItem, idx = 0) {
+            if (typeof rawItem === 'string') {
+                const str = rawItem.trim();
+                const match = str.match(/^\[TITIP\s*JUAL\]\s*(.+?)\s*-\s*([^\(|]+?)(?:\s*\((.+?)\))?(?:\s*\|\s*Harga\s*Jual:\s*Rp\s*([\d.,]+))?(?:\s*\|\s*Foto:\s*(.+))?$/i);
+                if (match) {
+                    const cleanPrice = Number(String(match[4] || '0').replace(/[^0-9]/g, '')) || 0;
+                    const fotoName = match[5] ? String(match[5]).trim() : '';
+                    const condText = match[3] ? String(match[3]).trim() : 'Grade B+ (Layak Baca)';
+                    return {
+                        id: `titip-str-${idx}-${match[1].trim().toLowerCase().replace(/\s+/g, '-')}`,
+                        submitter_name: String(match[2] || 'Pengguna Litera').trim(),
+                        book_title: String(match[1] || 'Buku Titipan').trim(),
+                        category: 'Umum',
+                        condition_note: fotoName ? `${condText} | Foto: ${fotoName}` : condText,
+                        recommended_price: cleanPrice,
+                        status: 'pending',
+                        created_at: new Date().toISOString()
+                    };
+                }
+                return {
+                    id: `titip-raw-${idx}`,
+                    submitter_name: 'Pengguna Litera',
+                    book_title: str.replace(/^\[TITIP\s*JUAL\]\s*/i, ''),
+                    category: 'Umum',
+                    condition_note: '-',
+                    recommended_price: 0,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+            }
+
+            if (!rawItem || typeof rawItem !== 'object') return null;
+
+            return {
+                ...rawItem,
+                id: rawItem.id ?? rawItem.qc_id ?? `qc-${idx}`,
+                submitter_name: rawItem.submitter_name || rawItem.user_name || rawItem.customer_name || rawItem.nama || rawItem.name || 'Pengguna Litera',
+                email: rawItem.email || rawItem.user_email || '',
+                book_title: rawItem.book_title || rawItem.title || rawItem.judul || 'Buku Titipan',
+                category: rawItem.category || rawItem.kategori || 'Umum',
+                condition_note: rawItem.condition_note || rawItem.grade || rawItem.kondisi || '-',
+                recommended_price: Number(rawItem.recommended_price ?? rawItem.price ?? rawItem.harga ?? 0) || 0,
+                status: normalizeQcStatusKey(rawItem.status || rawItem.qc_status || rawItem.examination_status)
+            };
+        }
+
+        function collectAllConsignmentItems(apiItems = [], extraOrders = []) {
+            const extraSources = [];
+            ['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].forEach(key => {
+                try {
+                    const list = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(list)) extraSources.push(...list);
+                    else if (list && typeof list === 'object') extraSources.push(list);
+                } catch (_) {}
+            });
+
+            const consignmentFromOrders = (Array.isArray(extraOrders) ? extraOrders : [])
+                .filter(o => isConsignmentRecord(o))
+                .map(o => ({
+                    id: o.id || o.order_id,
+                    submitter_name: o.submitter_name || o.customer_name || o.buyer_name || o.user_name || 'Pengguna Litera',
+                    email: o.email || o.user_email || '',
+                    book_title: String(o.book_title || o.items || o.items_summary || 'Buku Titipan').replace(/^\[TITIP\s*JUAL\]\s*/i, ''),
+                    category: o.category || 'Umum',
+                    condition_note: o.condition_note || o.grade || '-',
+                    recommended_price: Number(o.recommended_price ?? o.total ?? o.total_price ?? 0) || 0,
+                    status: normalizeQcStatusKey(o.qc_status || o.status)
+                }));
+
+            const mergedMap = new Map();
+            const combined = [...(Array.isArray(apiItems) ? apiItems : []), ...consignmentFromOrders, ...extraSources];
+
+            combined.forEach((raw, idx) => {
+                const parsed = parseConsignmentEntry(raw, idx);
+                if (!parsed) return;
+                const key = `${String(parsed.book_title).trim().toLowerCase()}__${String(parsed.submitter_name).trim().toLowerCase()}`;
+                if (!mergedMap.has(key)) {
+                    mergedMap.set(key, parsed);
+                } else {
+                    const existing = mergedMap.get(key);
+                    if (existing.status === 'pending' && parsed.status !== 'pending') {
+                        existing.status = parsed.status;
+                    }
+                    if (!existing.email && parsed.email) {
+                        existing.email = parsed.email;
+                    }
+                }
+            });
+
+            return Array.from(mergedMap.values());
+        }
+
+        async function syncMissingConsignmentsToSupabase(dbRows = [], mergedItems = []) {
+            const existingDbKeys = new Set(
+                (Array.isArray(dbRows) ? dbRows : []).map(r =>
+                    `${String(r.book_title || r.title || '').trim().toLowerCase()}__${String(r.submitter_name || r.user_name || '').trim().toLowerCase()}`
+                )
+            );
+
+            const missingItems = mergedItems.filter(item => {
+                const key = `${String(item.book_title || '').trim().toLowerCase()}__${String(item.submitter_name || '').trim().toLowerCase()}`;
+                return item.book_title && !existingDbKeys.has(key);
+            });
+
+            for (const item of missingItems) {
+                await supabaseRestRequest('qc_books', {
+                    method: 'POST',
+                    body: {
+                        submitter_name: item.submitter_name || 'Pengguna Litera',
+                        book_title: item.book_title,
+                        condition_note: item.condition_note || '-',
+                        recommended_price: Number(item.recommended_price || 0) || 0,
+                        status: normalizeQcStatusKey(item.status)
+                    }
+                });
+            }
+        }
+
+        function handlePendingQcKpiClick() {
+            showAdminSection('qc-section');
+            fetchQcQueueFromDB();
+        }
+
+        function buildAdminNotifications() {
+            const list = [];
+
+            qcItemsCache.forEach((item, idx) => {
+                const statusKey = normalizeQcStatusKey(item.status);
+                if (statusKey === 'pending') {
+                    const title = item.book_title || item.title || 'Buku Titipan';
+                    const submitter = item.submitter_name || item.user_name || 'Pengguna';
+                    list.push({
+                        id: `admin-qc-${item.id || title}-${idx}`,
+                        title: 'Pengajuan Titip Jual Baru',
+                        message: `${submitter} mengajukan "${title}" untuk pemeriksaan buku.`,
+                        icon: 'fa-clipboard-check',
+                        badgeColor: '#d97706',
+                        targetSection: 'qc-section'
+                    });
+                }
+            });
+
+            dbOrdersCache.forEach((ord, idx) => {
+                if (isConsignmentRecord(ord)) return;
+                const noPesanan = getOrderNoPesananFromDb(ord) || `#${ord.id || idx + 1}`;
+                const buyer = getOrderBuyerFromDb(ord);
+                const status = normalizeTrackingStatus(ord.status);
+                list.push({
+                    id: `admin-ord-${ord.id || noPesanan}-${status}-${idx}`,
+                    title: `Pesanan ${status}`,
+                    message: `${noPesanan} dari ${buyer} senilai Rp ${getOrderTotalFromDb(ord).toLocaleString('id-ID')}.`,
+                    icon: 'fa-box',
+                    badgeColor: '#7a1c24',
+                    targetSection: 'orders-admin'
+                });
+            });
+
+            if (list.length === 0) {
+                list.push({
+                    id: 'admin-idle',
+                    title: 'Toko Berjalan Normal',
+                    message: 'Katalog, pemeriksaan buku, dan pesanan pembeli sudah terhubung.',
+                    icon: 'fa-circle-check',
+                    badgeColor: '#15803d',
+                    targetSection: 'overview-admin'
+                });
+            }
+
+            return list;
+        }
+
+        function renderAdminNotificationPanel() {
+            const container = document.getElementById('admin-notif-list-container');
+            const dot = document.getElementById('admin-notif-unread-dot');
+            const sub = document.getElementById('admin-notif-summary-sub');
+            if (!container) return;
+
+            const notifs = buildAdminNotifications();
+            const unreadCount = notifs.filter(n => !readAdminNotifIds.has(n.id)).length;
+
+            if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+            if (sub) {
+                sub.textContent = unreadCount > 0
+                    ? `${unreadCount} pemberitahuan belum dibaca`
+                    : 'Semua pemberitahuan sudah dibaca';
+            }
+
+            container.innerHTML = notifs.map((n, i) => {
+                const isUnread = !readAdminNotifIds.has(n.id);
+                return `
+                    <div onclick="handleAdminNotificationClick(${i})" style="display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.75rem; border-radius: 10px; margin-bottom: 0.35rem; background: ${isUnread ? '#fff8f8' : '#ffffff'}; border: 1px solid ${isUnread ? '#fecdd3' : '#f1f5f9'}; cursor: pointer;">
+                        <div style="width: 34px; height: 34px; border-radius: 50%; background: ${n.badgeColor}18; color: ${n.badgeColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.9rem;">
+                            <i class="fa-solid ${n.icon}"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
+                                <strong style="font-size: 0.82rem; color: #0f172a;">${n.title}</strong>
+                                ${isUnread ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #7a1c24; flex-shrink: 0;"></span>' : ''}
+                            </div>
+                            <p style="margin: 0.22rem 0 0; font-size: 0.79rem; line-height: 1.4; color: #475569;">${n.message}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleAdminNotificationClick(index) {
+            const notifs = buildAdminNotifications();
+            const chosen = notifs[index];
+            if (!chosen) return;
+            readAdminNotifIds.add(chosen.id);
+            persistAdminReadNotifs();
+            if (chosen.targetSection) {
+                showAdminSection(chosen.targetSection);
+            }
+            renderAdminNotificationPanel();
+            const panel = document.getElementById('admin-notif-dropdown-panel');
+            if (panel) panel.style.display = 'none';
+        }
+
+        function markAllAdminNotificationsRead() {
+            const notifs = buildAdminNotifications();
+            notifs.forEach(n => readAdminNotifIds.add(n.id));
+            persistAdminReadNotifs();
+            renderAdminNotificationPanel();
+        }
+
+        function toggleAdminNotificationPanel(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('admin-notif-dropdown-panel');
+            if (!panel) return;
+            const isOpen = panel.style.display === 'block';
+            panel.style.display = isOpen ? 'none' : 'block';
+            if (!isOpen) renderAdminNotificationPanel();
+        }
+
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('admin-notif-dropdown-panel');
+            const bell = document.getElementById('admin-notif-bell-btn');
+            if (!panel || panel.style.display !== 'block') return;
+            if (!panel.contains(event.target) && (!bell || !bell.contains(event.target))) {
+                panel.style.display = 'none';
+            }
+        });
 
         function toggleAddBookModal(show, isEdit = false) {
             const modal = document.getElementById('modal-add-book');
             const modalTitle = document.getElementById('modal-title-text');
             if (show) {
-                modal.classList.remove('hidden-modal');
+                modal.style.display = 'flex';
                 if (!isEdit) {
                     document.getElementById('form-add-book').reset();
+                    document.getElementById('prod-stock').value = '1';
                     document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
                     uploadedCoverBase64 = null;
                     editingBookId = null;
-                    modalTitle.innerHTML = '<i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru ke Database Supabase';
+                    modalTitle.innerHTML = '<i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru ke Katalog';
                 }
             } else {
-                modal.classList.add('hidden-modal');
+                modal.style.display = 'none';
                 editingBookId = null;
             }
         }
@@ -607,48 +1647,242 @@
             if (targetMenu) targetMenu.classList.add('active');
         }
 
-        function fetchAdminInventoryFromSupabase() {
-            const baseUrl = getApiBaseUrl();
-            return fetch(`${baseUrl}/api/books`)
-                .then(res => res.json())
-                .then(result => {
-                    const tbody = document.getElementById('inventory-table-body');
-                    tbody.innerHTML = '';
-                    booksCache = {};
+        function calculateRevenueFromDbOrders(ordersList = []) {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
 
-                    const booksList = result.books || result.data || [];
+            const validOrders = (Array.isArray(ordersList) ? ordersList : []).filter(o => {
+                if (!o || typeof o !== 'object' || isConsignmentRecord(o)) return false;
+                const st = String(o.status || '').toLowerCase();
+                return !st.includes('batal') && !st.includes('cancel') && !st.includes('gagal');
+            });
 
-                    if (result.success && booksList.length > 0) {
-                        booksList.forEach(book => {
-                            booksCache[book.id] = book;
-                            const tr = document.createElement('tr');
-                            tr.id = `book-row-${book.id}`;
-                            tr.innerHTML = `
-                                <td><strong>${book.title}</strong><br><small style="color:#666;">${book.author || ''}</small></td>
-                                <td>${book.category}</td>
-                                <td>${book.grade}</td>
-                                <td class="price">Rp ${Number(book.price).toLocaleString('id-ID')}</td>
-                                <td><span class="status-badge blue">${book.stock || 1} UNIT (READY)</span></td>
-                                <td>
-                                    <button class="btn-success-sm" onclick="openEditBookModal('${book.id}')">
-                                        <i class="fa-solid fa-pen-to-square"></i> Edit
-                                    </button>
-                                    <button class="btn-danger-sm" onclick="deleteBookFromSupabase('${book.id}')">
-                                        <i class="fa-solid fa-trash"></i> Hapus
-                                    </button>
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.5rem; color:#666;">Belum ada data buku di database Supabase.</td></tr>';
-                    }
-                })
-                .catch(err => {
-                    console.warn('Gagal mengambil data dari Supabase server:', err);
-                    const tbody = document.getElementById('inventory-table-body');
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.5rem; color:red;">Gagal terhubung ke backend Supabase (/api/books).</td></tr>';
+            if (validOrders.length === 0) return 0;
+
+            const currentMonthOrders = validOrders.filter(o => {
+                const rawDate = o.created_at || o.tanggal || o.date;
+                if (!rawDate) return true;
+                const d = new Date(rawDate);
+                if (Number.isNaN(d.getTime())) return true;
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+
+            const targetOrders = currentMonthOrders.length > 0 ? currentMonthOrders : validOrders;
+
+            return targetOrders.reduce((sum, o) => sum + getOrderTotalFromDb(o), 0);
+        }
+
+        function updateKpiCards(booksList = [], usersList = [], qcList = [], dbOrdersList = []) {
+            const uniqueBooks = new Map();
+            (Array.isArray(booksList) ? booksList : []).forEach((b, idx) => {
+                if (!b || typeof b !== 'object') return;
+                const key = String(b.title || b.id || `book-${idx}`).trim().toLowerCase();
+                uniqueBooks.set(key, b);
+            });
+
+            const totalStock = Array.from(uniqueBooks.values()).reduce((sum, b) => {
+                const qty = Number(b.Stok ?? b.stok ?? b.stock ?? b.quantity ?? 0);
+                const isReady = isBookReadyFromStatusAndStock(b);
+                return sum + (isReady ? Math.max(0, Math.floor(qty)) : 0);
+            }, 0);
+
+            const totalUsers = Array.isArray(usersList) ? usersList.length : 0;
+
+            const pendingQc = (Array.isArray(qcList) ? qcList : []).filter(item =>
+                normalizeQcStatusKey(item.status || item.qc_status || item.examination_status) === 'pending'
+            ).length;
+
+            const totalRevenue = calculateRevenueFromDbOrders(dbOrdersList);
+
+            document.getElementById('stat-total-books').innerText = `${totalStock.toLocaleString('id-ID')} Unit`;
+            document.getElementById('stat-total-users').innerText = `${totalUsers.toLocaleString('id-ID')} Akun`;
+            document.getElementById('stat-pending-qc').innerText = `${pendingQc.toLocaleString('id-ID')} Buku`;
+            document.getElementById('stat-monthly-revenue').innerText = `Rp ${totalRevenue.toLocaleString('id-ID')}`;
+        }
+
+        function updateKpiFromCurrentCaches() {
+            const cachedBooks = Object.values(booksCache);
+            let fallbackBooks = cachedBooks;
+            if (fallbackBooks.length === 0) {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
+                    if (Array.isArray(parsed) && parsed.length > 0) fallbackBooks = parsed;
+                    else fallbackBooks = DEFAULT_CATALOG_BOOKS;
+                } catch (_) {
+                    fallbackBooks = DEFAULT_CATALOG_BOOKS;
+                }
+            }
+            updateKpiCards(fallbackBooks, usersCache, qcItemsCache, dbOrdersCache);
+        }
+
+        function normalizeBookRecord(book, idx = 0) {
+            if (!book || typeof book !== 'object') return null;
+            const rawStock = Number(book.Stok ?? book.stok ?? book.stock ?? book.quantity ?? 0);
+            const safeStock = Number.isFinite(rawStock) && rawStock >= 0 ? Math.floor(rawStock) : 0;
+            const isReady = isBookReadyFromStatusAndStock({ ...book, Stok: safeStock, stok: safeStock, stock: safeStock });
+            const finalStock = isReady ? Math.max(1, safeStock) : 0;
+            const dbStatus = mapStatusToDbLabel(isReady);
+
+            return {
+                ...book,
+                id: book.id ?? book.book_id ?? (idx + 1),
+                title: book.title || book.judul || 'Judul Buku',
+                author: book.author || book.penulis || '',
+                category: book.category || book.kategori || 'Umum',
+                grade: book.grade || book.kondisi || 'Grade A (Mulus)',
+                price: Number(book.price ?? book.harga ?? 0) || 0,
+                Stok: finalStock,
+                stok: finalStock,
+                stock: finalStock,
+                Status: dbStatus,
+                status: dbStatus
+            };
+        }
+
+        function renderInventoryTableRows(finalBooks = []) {
+            const tbody = document.getElementById('inventory-table-body');
+            if (!tbody) return;
+
+            booksCache = {};
+            if (!Array.isArray(finalBooks) || finalBooks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color:#666;">Belum ada produk di katalog.</td></tr>';
+                return;
+            }
+
+            let totalAvailableStock = 0;
+            tbody.innerHTML = '';
+
+            finalBooks.forEach(book => {
+                booksCache[book.id] = book;
+                const isReady = isBookReadyFromStatusAndStock(book);
+                const finalStock = isReady ? Number(book.Stok ?? book.stok ?? book.stock ?? 0) : 0;
+                totalAvailableStock += finalStock;
+
+                const btnClass = isReady ? 'is-ready' : 'is-soldout';
+                const iconClass = isReady ? 'fa-circle-check' : 'fa-circle-xmark';
+                const btnText = isReady ? `READY (${finalStock} UNIT)` : 'SOLD OUT';
+                const safeId = String(book.id).replace(/'/g, "\\'");
+
+                const tr = document.createElement('tr');
+                tr.id = `book-row-${book.id}`;
+                tr.innerHTML = `
+                    <td><strong>${book.title}</strong><br><small style="color:#666;">${book.author || ''}</small></td>
+                    <td>${book.category}</td>
+                    <td>${book.grade}</td>
+                    <td class="price">Rp ${Number(book.price).toLocaleString('id-ID')}</td>
+                    <td>
+                        <button type="button" class="stock-toggle-btn ${btnClass}" onclick="toggleBookReadyStatus('${safeId}')" title="Klik untuk ubah Status menjadi SIAP / HABIS TERJUAL">
+                            <i class="fa-solid ${iconClass}"></i>
+                            <span>${btnText}</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const stockEl = document.getElementById('stat-total-books');
+            if (stockEl) stockEl.innerText = `${totalAvailableStock.toLocaleString('id-ID')} Unit`;
+        }
+
+        function getMergedBooksListFromLocalAndDefault() {
+            let localBooks = [];
+            try {
+                const cached = JSON.parse(localStorage.getItem('litera_books_cache') || localStorage.getItem('litera_catalog_books') || '[]');
+                if (Array.isArray(cached)) {
+                    localBooks = cached.map((b, idx) => normalizeBookRecord(b, idx)).filter(Boolean);
+                }
+            } catch (_) {}
+
+            const baseList = localBooks.length > 0
+                ? localBooks
+                : DEFAULT_CATALOG_BOOKS.map((b, idx) => normalizeBookRecord(b, idx)).filter(Boolean);
+
+            const bookMap = new Map();
+            baseList.forEach(b => {
+                const titleKey = String(b.title).trim().toLowerCase();
+                if (!bookMap.has(titleKey)) bookMap.set(titleKey, b);
+            });
+            return Array.from(bookMap.values());
+        }
+
+        async function fetchAdminInventoryFromSupabase() {
+            const initialList = getMergedBooksListFromLocalAndDefault();
+            renderInventoryTableRows(initialList);
+
+            const sbRows = await supabaseRestRequest('books', { method: 'GET' });
+            if (Array.isArray(sbRows) && sbRows.length > 0) {
+                const dbBooks = sbRows.map((b, idx) => normalizeBookRecord(b, idx)).filter(Boolean);
+                const bookMap = new Map();
+                dbBooks.forEach(b => {
+                    const key = String(b.title).trim().toLowerCase();
+                    if (!bookMap.has(key)) bookMap.set(key, b);
                 });
+                const finalBooks = Array.from(bookMap.values());
+                broadcastCatalogUpdate(finalBooks);
+                renderInventoryTableRows(finalBooks);
+                updateKpiFromCurrentCaches();
+            } else {
+                for (const item of initialList) {
+                    await upsertBookToSupabase(item);
+                }
+                broadcastCatalogUpdate(initialList);
+            }
+        }
+
+        async function toggleBookReadyStatus(bookId) {
+            const current = booksCache[bookId] || Object.values(booksCache).find(b => String(b.id) === String(bookId));
+            if (!current) return;
+
+            const currentlyReady = isBookReadyFromStatusAndStock(current);
+            const nextReady = !currentlyReady;
+            const nextStock = nextReady ? Math.max(1, Number(current.previous_stock || current.Stok || current.stok || current.stock || 1)) : 0;
+            const nextPrevStock = currentlyReady ? Math.max(1, Number(current.Stok || current.stok || current.stock || 1)) : (current.previous_stock || 1);
+            const nextStatusLabel = mapStatusToDbLabel(nextReady);
+            const nowIso = new Date().toISOString();
+
+            const updatedBook = {
+                ...current,
+                Stok: nextStock,
+                stok: nextStock,
+                stock: nextStock,
+                previous_stock: nextPrevStock,
+                Status: nextStatusLabel,
+                status: nextStatusLabel,
+                updated_at: nowIso
+            };
+
+            booksCache[updatedBook.id] = updatedBook;
+
+            let nextList = [];
+            try {
+                const cachedRaw = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
+                const base = Array.isArray(cachedRaw) && cachedRaw.length > 0
+                    ? cachedRaw
+                    : getMergedBooksListFromLocalAndDefault();
+                const idx = base.findIndex(b =>
+                    String(b.id) === String(updatedBook.id) ||
+                    String(b.title).trim().toLowerCase() === String(updatedBook.title).trim().toLowerCase()
+                );
+                if (idx >= 0) {
+                    base[idx] = { ...base[idx], ...updatedBook };
+                    nextList = base;
+                } else {
+                    nextList = [updatedBook, ...base];
+                }
+                broadcastCatalogUpdate(nextList);
+            } catch (_) {
+                nextList = Object.values(booksCache);
+                broadcastCatalogUpdate(nextList);
+            }
+
+            renderInventoryTableRows(nextList);
+            updateKpiFromCurrentCaches();
+
+            await patchBookInSupabase(updatedBook, {
+                Status: nextStatusLabel,
+                Stok: nextStock
+            });
         }
 
         function previewBookCoverPhoto(event) {
@@ -658,22 +1892,24 @@
                 reader.onload = function(e) {
                     uploadedCoverBase64 = e.target.result;
                     document.getElementById('book-cover-preview').src = uploadedCoverBase64;
-                }
+                };
                 reader.readAsDataURL(file);
             }
         }
 
-        function handleAddBookSubmit(e) {
+        async function handleAddBookSubmit(e) {
             e.preventDefault();
-            const baseUrl = getApiBaseUrl();
 
             if (!uploadedCoverBase64 && !editingBookId) {
-                alert('Harap unggah foto cover buku terlebih dahulu!');
+                alert('Silakan pilih foto sampul buku terlebih dahulu.');
                 return;
             }
 
             const rawPrice = document.getElementById('prod-price').value.toString();
             const cleanPrice = Number(rawPrice.replace(/[^0-9]/g, ''));
+            const stockInput = Number(document.getElementById('prod-stock').value);
+            const cleanStock = Number.isFinite(stockInput) && stockInput >= 0 ? Math.floor(stockInput) : 0;
+            const statusLabel = mapStatusToDbLabel(cleanStock > 0);
 
             const bookData = {
                 title: document.getElementById('prod-title').value,
@@ -681,283 +1917,315 @@
                 category: document.getElementById('prod-category').value,
                 grade: document.getElementById('prod-grade').value,
                 price: cleanPrice || 0,
+                Stok: cleanStock,
+                stok: cleanStock,
+                stock: cleanStock,
+                previous_stock: Math.max(1, cleanStock),
+                Status: statusLabel,
+                status: statusLabel,
                 rating: parseFloat(document.getElementById('prod-rating').value) || 4.8,
                 img: uploadedCoverBase64 || 'https://via.placeholder.com/120x150?text=Cover',
-                desc: document.getElementById('prod-desc').value
+                description: document.getElementById('prod-desc').value,
+                updated_at: new Date().toISOString()
             };
 
-            const url = editingBookId ? `${baseUrl}/api/books/${editingBookId}` : `${baseUrl}/api/books`;
-            const method = editingBookId ? 'PUT' : 'POST';
+            await upsertBookToSupabase({ ...bookData, id: editingBookId });
 
-            fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bookData)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`✅ Buku "${bookData.title}" berhasil ${editingBookId ? 'diperbarui' : 'disimpan'} ke Database Supabase!`);
-                    document.getElementById('form-add-book').reset();
-                    document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
-                    uploadedCoverBase64 = null;
-                    editingBookId = null;
-                    toggleAddBookModal(false);
-                    fetchAdminInventoryFromSupabase();
-                    fetchSystemStatsFromDB();
-                } else {
-                    alert('Gagal menyimpan buku: ' + (data.message || data.error));
-                }
-            })
-            .catch(err => {
-                console.error('Error API Admin:', err);
-                alert('Gagal terhubung ke backend server!');
-            });
+            try {
+                const existingBooks = JSON.parse(localStorage.getItem('litera_books_cache') || '[]');
+                const list = Array.isArray(existingBooks) && existingBooks.length > 0 ? existingBooks : [...DEFAULT_CATALOG_BOOKS];
+                const record = { ...bookData, id: editingBookId || Date.now() };
+                const idx = list.findIndex(b => String(b.id) === String(record.id) || String(b.title).toLowerCase() === String(record.title).toLowerCase());
+                if (idx >= 0) list[idx] = { ...list[idx], ...record };
+                else list.unshift(record);
+                broadcastCatalogUpdate(list);
+            } catch (_) {}
+
+            alert(`Produk "${bookData.title}" berhasil disimpan (Status: ${statusLabel}, Stok: ${cleanStock}).`);
+
+            document.getElementById('form-add-book').reset();
+            document.getElementById('prod-stock').value = '1';
+            document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
+            uploadedCoverBase64 = null;
+            editingBookId = null;
+            toggleAddBookModal(false);
+            fetchAdminInventoryFromSupabase();
+            fetchSystemStatsFromDB();
         }
 
-        function openEditBookModal(bookId) {
-            const book = booksCache[bookId];
-            if (!book) return;
-
-            editingBookId = book.id;
-            document.getElementById('modal-title-text').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit / Update Katalog Buku';
-            
-            document.getElementById('prod-title').value = book.title || '';
-            document.getElementById('prod-author').value = book.author || '';
-            document.getElementById('prod-category').value = book.category || 'Fiksi';
-            document.getElementById('prod-grade').value = book.grade || 'Grade A (Mulus)';
-            document.getElementById('prod-price').value = book.price || '';
-            document.getElementById('prod-rating').value = book.rating || 4.8;
-            document.getElementById('prod-desc').value = book.description || book.desc || '';
-            
-            if (book.img) {
-                uploadedCoverBase64 = book.img;
-                document.getElementById('book-cover-preview').src = book.img;
-            } else {
-                uploadedCoverBase64 = null;
-                document.getElementById('book-cover-preview').src = 'https://via.placeholder.com/120x150?text=Cover';
-            }
-
-            toggleAddBookModal(true, true);
-        }
-
-        function deleteBookFromSupabase(id) {
-            const baseUrl = getApiBaseUrl();
-            const book = booksCache[id];
-            const title = book ? book.title : 'buku ini';
-
-            if (confirm(`Apakah Anda yakin ingin menghapus buku "${title}" dari database Supabase?`)) {
-                fetch(`${baseUrl}/api/books/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`✅ Buku "${title}" berhasil dihapus dari Database Supabase!`);
-                        const row = document.getElementById(`book-row-${id}`);
-                        if (row) row.remove();
-                        delete booksCache[id];
-                        fetchSystemStatsFromDB();
-                    } else {
-                        alert('Gagal menghapus buku: ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    console.error('Error Hapus Buku:', err);
-                    alert('Terjadi kesalahan saat menghubungi server.');
-                });
-            }
-        }
-
-        // --- STATISTIK SISTEM DARI SUPABASE ---
         async function fetchSystemStatsFromDB() {
-            const baseUrl = getApiBaseUrl();
             const tbody = document.getElementById('recent-transactions-body');
 
-            try {
-                const [booksRes, usersRes, qcRes, ordersRes] = await Promise.allSettled([
-                    fetch(`${baseUrl}/api/books`).then(r => r.json()),
-                    fetch(`${baseUrl}/api/users`).then(r => r.json()),
-                    fetch(`${baseUrl}/api/qc`).then(r => r.json()),
-                    fetch(`${baseUrl}/api/orders`).then(r => r.json())
-                ]);
+            const [sbBooks, sbUsers, sbQc, sbOrders] = await Promise.all([
+                supabaseRestRequest('books', { method: 'GET' }),
+                supabaseRestRequest('users', { method: 'GET' }),
+                supabaseRestRequest('qc_books', { method: 'GET' }),
+                supabaseRestRequest('orders', { method: 'GET' })
+            ]);
 
-                const booksData = booksRes.status === 'fulfilled' ? (booksRes.value.books || booksRes.value.data || []) : [];
-                const usersData = usersRes.status === 'fulfilled' ? (usersRes.value.users || usersRes.value.data || []) : [];
-                const qcData = qcRes.status === 'fulfilled' ? (qcRes.value.items || qcRes.value.qc || qcRes.value.data || []) : [];
-                const ordersData = ordersRes.status === 'fulfilled' ? (ordersRes.value.orders || ordersRes.value.data || []) : [];
+            const booksData = Array.isArray(sbBooks) && sbBooks.length > 0
+                ? sbBooks
+                : getMergedBooksListFromLocalAndDefault();
 
-                const totalStock = booksData.reduce((sum, b) => sum + (Number(b.stock) || 1), 0);
-                const pendingQc = qcData.filter(item => !item.status || String(item.status).toLowerCase() === 'pending').length;
-                const totalRevenue = ordersData.reduce((sum, o) => sum + (Number(o.total || o.total_price || o.price) || 0), 0);
+            const rawAllOrders = Array.isArray(sbOrders) ? sbOrders : [];
+            const rawDbOrders = rawAllOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o));
+            const qcData = collectAllConsignmentItems(Array.isArray(sbQc) ? sbQc : [], rawAllOrders);
+            await syncMissingConsignmentsToSupabase(Array.isArray(sbQc) ? sbQc : [], qcData);
 
-                document.getElementById('stat-total-books').innerText = `${totalStock.toLocaleString('id-ID')} Unit`;
-                document.getElementById('stat-total-users').innerText = `${usersData.length.toLocaleString('id-ID')} Akun`;
-                document.getElementById('stat-pending-qc').innerText = `${pendingQc.toLocaleString('id-ID')} Buku`;
-                document.getElementById('stat-monthly-revenue').innerText = `Rp ${totalRevenue.toLocaleString('id-ID')}`;
+            const usersData = Array.isArray(sbUsers) ? sbUsers : [];
 
-                if (ordersData.length > 0) {
-                    tbody.innerHTML = ordersData.slice(0, 5).map(order => `
+            dbOrdersCache = rawDbOrders;
+            usersCache = usersData;
+            qcItemsCache = qcData;
+            syncQcToUserDashboardStorage(qcData);
+
+            ordersCache = {};
+            rawDbOrders.forEach((ord, idx) => {
+                const oid = ord.id ?? ord.order_id ?? `ord-${idx}`;
+                ordersCache[oid] = { ...ord, id: oid };
+                syncOrderToUserDashboardStorage(
+                    ordersCache[oid],
+                    getOrderNoPesananFromDb(ord),
+                    getOrderResiFromDb(ord),
+                    normalizeTrackingStatus(ord.status)
+                );
+            });
+
+            updateKpiCards(booksData, usersData, qcData, rawDbOrders);
+            renderAdminNotificationPanel();
+
+            if (rawDbOrders.length > 0) {
+                tbody.innerHTML = rawDbOrders.slice(0, 5).map((order, idx) => {
+                    const noPesanan = getOrderNoPesananFromDb(order) || `#${order.id || idx + 1}`;
+                    const statusLabel = normalizeTrackingStatus(order.status);
+                    const numAmount = getOrderTotalFromDb(order);
+                    return `
                         <tr>
-                            <td><strong>#${order.id || order.order_id || '-'}</strong></td>
-                            <td>${order.customer_name || order.buyer_name || order.user_name || '-'}</td>
-                            <td>${order.book_title || order.items || order.items_summary || '-'}</td>
-                            <td class="price">Rp ${Number(order.total || order.total_price || 0).toLocaleString('id-ID')}</td>
-                            <td><span class="status-badge blue">${order.status || 'Diproses'}</span></td>
+                            <td><strong>${noPesanan}</strong></td>
+                            <td>${getOrderBuyerFromDb(order)}</td>
+                            <td>${getOrderItemsFromDb(order) || '-'}</td>
+                            <td class="price">Rp ${numAmount.toLocaleString('id-ID')}</td>
+                            <td><span class="status-badge blue">${statusLabel}</span></td>
                         </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada transaksi tercatat di database.</td></tr>';
-                }
-            } catch (err) {
-                console.warn('Gagal memuat statistik dari database:', err);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:red;">Gagal terhubung ke backend.</td></tr>';
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada transaksi pembeli di database.</td></tr>';
             }
         }
 
-        // --- VERIFIKASI QC BUKU DARI SUPABASE ---
         async function fetchQcQueueFromDB() {
-            const baseUrl = getApiBaseUrl();
             const tbody = document.getElementById('qc-table-body');
-            try {
-                const res = await fetch(`${baseUrl}/api/qc`);
-                const data = await res.json();
-                const items = data.items || data.qc || data.data || [];
+            const [sbRows, sbOrders] = await Promise.all([
+                supabaseRestRequest('qc_books', { method: 'GET' }),
+                supabaseRestRequest('orders', { method: 'GET' })
+            ]);
+            const items = collectAllConsignmentItems(Array.isArray(sbRows) ? sbRows : [], Array.isArray(sbOrders) ? sbOrders : []);
+            await syncMissingConsignmentsToSupabase(Array.isArray(sbRows) ? sbRows : [], items);
 
-                if (data.success && items.length > 0) {
-                    tbody.innerHTML = items.map(item => `
+            qcItemsCache = items;
+            syncQcToUserDashboardStorage(items);
+            updateKpiFromCurrentCaches();
+            renderAdminNotificationPanel();
+
+            if (items.length > 0) {
+                tbody.innerHTML = items.map(item => {
+                    const statusKey = normalizeQcStatusKey(item.status || item.qc_status || item.examination_status);
+                    const isApproved = statusKey === 'approved';
+                    const isRejected = statusKey === 'rejected';
+                    const badgeClass = isApproved ? 'green' : (isRejected ? 'red' : 'yellow');
+                    const statusLabel = isApproved ? 'Disetujui Tayang' : (isRejected ? 'Ditolak' : 'Dalam Pemeriksaan');
+                    const safeTitle = String(item.book_title || item.title || '').replace(/'/g, "\\'");
+                    const safeId = String(item.id || '').replace(/'/g, "\\'");
+
+                    return `
                         <tr id="qc-row-${item.id}">
-                            <td><strong>${item.submitter_name || item.user_name || '-'}</strong></td>
-                            <td>${item.book_title || item.title || '-'}</td>
-                            <td>${item.condition_note || item.grade || '-'}</td>
-                            <td class="price">Rp ${Number(item.recommended_price || item.price || 0).toLocaleString('id-ID')}</td>
+                            <td><strong>${item.submitter_name || '-'}</strong><br><small style="color:#64748b;">${item.email || 'Akun Pengguna'}</small></td>
+                            <td><strong>${item.book_title || '-'}</strong><br><small style="color:#64748b;">${item.category || 'Umum'}</small></td>
+                            <td>${item.condition_note || '-'}</td>
+                            <td class="price">Rp ${Number(item.recommended_price || 0).toLocaleString('id-ID')}</td>
+                            <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
                             <td>
-                                <button class="btn-success-sm" onclick="updateQcStatus('${item.id}', 'approved')"><i class="fa-solid fa-check"></i> Setujui</button>
-                                <button class="btn-danger-sm" onclick="updateQcStatus('${item.id}', 'rejected')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+                                <div class="action-btn-group">
+                                    <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'approved', '${safeTitle}')"><i class="fa-solid fa-check"></i> Setujui</button>
+                                    <button type="button" class="btn-danger-sm" style="cursor:pointer; min-height:34px;" onclick="updateQcStatus('${safeId}', 'rejected', '${safeTitle}')"><i class="fa-solid fa-xmark"></i> Tolak</button>
+                                </div>
                             </td>
                         </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Tidak ada antrean verifikasi QC di database.</td></tr>';
-                }
-            } catch (err) {
-                console.warn('Gagal memuat antrean QC:', err);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:red;">Gagal terhubung ke endpoint /api/qc.</td></tr>';
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada buku titip jual yang masuk.</td></tr>';
             }
         }
 
-        async function updateQcStatus(id, status) {
-            const baseUrl = getApiBaseUrl();
-            try {
-                const res = await fetch(`${baseUrl}/api/qc/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(`✅ Status QC berhasil diperbarui menjadi: ${status}`);
-                    fetchQcQueueFromDB();
-                    fetchSystemStatsFromDB();
-                } else {
-                    alert('Gagal memperbarui status QC: ' + (data.message || 'Kesalahan server'));
-                }
-            } catch (err) {
-                console.error('Error update QC:', err);
-                alert('Gagal terhubung ke backend.');
+        async function updateQcStatus(id, status, bookTitle = '') {
+            const statusKey = normalizeQcStatusKey(status);
+            const isApproved = statusKey === 'approved';
+            const statusLabel = isApproved ? 'Disetujui Tayang' : 'Ditolak';
+            const userStatusLabel = isApproved ? 'Disetujui' : 'Ditolak';
+            const nowIso = new Date().toISOString();
+
+            const baseList = qcItemsCache.length > 0 ? qcItemsCache : collectAllConsignmentItems([]);
+            const targetItem = baseList.find(item =>
+                (id && String(item.id) === String(id)) ||
+                (bookTitle && (String(item.book_title || '').toLowerCase() === String(bookTitle).toLowerCase() || String(item.title || '').toLowerCase() === String(bookTitle).toLowerCase()))
+            );
+
+            const updatedList = baseList.map(item =>
+                (id && String(item.id) === String(id)) ||
+                (bookTitle && (String(item.book_title || '').toLowerCase() === String(bookTitle).toLowerCase() || String(item.title || '').toLowerCase() === String(bookTitle).toLowerCase()))
+                    ? { ...item, status: statusKey, qc_status: userStatusLabel, examination_status: userStatusLabel, updated_at: nowIso }
+                    : item
+            );
+
+            qcItemsCache = updatedList;
+            syncQcToUserDashboardStorage(updatedList);
+
+            const payload = {
+                ...(targetItem || {}),
+                id: (targetItem && targetItem.id) ? targetItem.id : id,
+                book_title: bookTitle || (targetItem && targetItem.book_title) || '',
+                status: statusKey
+            };
+
+            await insertOrUpdateQcInSupabase(payload);
+            if (isApproved) {
+                await syncApprovedQcBookToInventory(payload);
             }
+
+            updateKpiFromCurrentCaches();
+            alert(`Status pemeriksaan "${payload.book_title || 'buku titipan'}" diperbarui menjadi ${statusLabel}.${isApproved ? ' Buku otomatis masuk ke Kelola Stok & Produk (SIAP).' : ''}`);
+            fetchQcQueueFromDB();
+            fetchSystemStatsFromDB();
         }
 
-        // --- KELOLA PESANAN DARI SUPABASE ---
         async function fetchOrdersFromDB() {
-            const baseUrl = getApiBaseUrl();
             const tbody = document.getElementById('orders-table-body');
-            try {
-                const res = await fetch(`${baseUrl}/api/orders`);
-                const data = await res.json();
-                const orders = data.orders || data.data || [];
+            ordersCache = {};
 
-                if (data.success && orders.length > 0) {
-                    tbody.innerHTML = orders.map(order => `
+            const sbOrders = await supabaseRestRequest('orders', { method: 'GET' });
+            const orders = Array.isArray(sbOrders)
+                ? sbOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o))
+                : [];
+
+            dbOrdersCache = orders;
+            updateKpiFromCurrentCaches();
+
+            if (orders.length > 0) {
+                tbody.innerHTML = orders.map((order, idx) => {
+                    const orderId = order.id ?? order.order_id ?? `ord-${idx}`;
+                    const safeOrderId = String(orderId).replace(/'/g, "\\'");
+                    const noPesanan = getOrderNoPesananFromDb(order);
+                    ordersCache[orderId] = { ...order, id: orderId };
+
+                    const existingResi = getOrderResiFromDb(order);
+                    const currentStatus = normalizeTrackingStatus(order.status);
+                    const numAmount = getOrderTotalFromDb(order);
+                    const itemsText = getOrderItemsFromDb(order);
+
+                    syncOrderToUserDashboardStorage(ordersCache[orderId], noPesanan, existingResi, currentStatus);
+
+                    const statusOptionsHtml = TRACKING_STAGES.map(stage =>
+                        `<option value="${stage}" ${currentStatus === stage ? 'selected' : ''}>${stage}</option>`
+                    ).join('');
+
+                    return `
                         <tr>
-                            <td><strong>#${order.id || order.order_id}</strong></td>
-                            <td>${order.customer_name || order.buyer_name || '-'}</td>
-                            <td class="price">Rp ${Number(order.total || order.total_price || 0).toLocaleString('id-ID')}</td>
-                            <td><input type="text" id="resi-${order.id}" value="${order.tracking_number || ''}" placeholder="Input no. resi" style="padding:0.25rem 0.4rem; border:1px solid #cbd5e1; border-radius:4px;"></td>
+                            <td><input type="text" id="nopesanan-${orderId}" value="${noPesanan}" placeholder="No. Pesanan" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight:600; min-width:155px;"></td>
+                            <td><strong>${getOrderBuyerFromDb(order)}</strong>${itemsText ? `<br><small style="color:#64748b;">${itemsText}</small>` : ''}</td>
+                            <td class="price">Rp ${numAmount.toLocaleString('id-ID')}</td>
+                            <td><input type="text" id="resi-${orderId}" value="${existingResi}" placeholder="No. Resi" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; min-width:165px;"></td>
                             <td>
-                                <select id="order-status-${order.id}" style="padding:0.25rem 0.4rem; border:1px solid #cbd5e1; border-radius:4px;">
-                                    <option value="Menunggu Pembayaran" ${order.status === 'Menunggu Pembayaran' ? 'selected' : ''}>Menunggu Pembayaran</option>
-                                    <option value="Diproses" ${order.status === 'Diproses' ? 'selected' : ''}>Diproses</option>
-                                    <option value="Dikirim" ${order.status === 'Dikirim' ? 'selected' : ''}>Dikirim</option>
-                                    <option value="Selesai" ${order.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                                <select id="order-status-${orderId}" style="padding: 0.38rem 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background:#fff;">
+                                    ${statusOptionsHtml}
                                 </select>
                             </td>
                             <td>
-                                <button class="btn-success-sm" onclick="updateOrderStatus('${order.id}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                                <button type="button" class="btn-success-sm" style="cursor:pointer; min-height:34px;" onclick="updateOrderStatus('${safeOrderId}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
                             </td>
                         </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada data pesanan di database.</td></tr>';
-                }
-            } catch (err) {
-                console.warn('Gagal memuat pesanan:', err);
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:red;">Gagal terhubung ke endpoint /api/orders.</td></tr>';
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada pesanan pembeli di database.</td></tr>';
             }
+            renderAdminNotificationPanel();
         }
 
         async function updateOrderStatus(orderId) {
-            const baseUrl = getApiBaseUrl();
-            const tracking_number = document.getElementById(`resi-${orderId}`).value;
-            const status = document.getElementById(`order-status-${orderId}`).value;
-            try {
-                const res = await fetch(`${baseUrl}/api/orders/${orderId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tracking_number, status })
+            const orderObj = ordersCache[orderId] || { id: orderId };
+            const noPesananInput = document.getElementById(`nopesanan-${orderId}`);
+            const resiInput = document.getElementById(`resi-${orderId}`);
+            const statusSelect = document.getElementById(`order-status-${orderId}`);
+
+            const no_pesanan = noPesananInput ? noPesananInput.value.trim() : getOrderNoPesananFromDb(orderObj);
+            const tracking_number = resiInput ? resiInput.value.trim() : getOrderResiFromDb(orderObj);
+            const status = statusSelect ? normalizeTrackingStatus(statusSelect.value) : normalizeTrackingStatus(orderObj.status);
+
+            const mergedOrder = {
+                ...orderObj,
+                id: orderObj.id ?? orderId,
+                no_pesanan,
+                invoice: no_pesanan,
+                no_resi: tracking_number,
+                awb: tracking_number,
+                tracking_number,
+                resi: tracking_number,
+                status,
+                shipping_status: status,
+                pengiriman: status,
+                updated_at: new Date().toISOString()
+            };
+            ordersCache[orderId] = mergedOrder;
+            syncOrderToUserDashboardStorage(mergedOrder, no_pesanan, tracking_number, status);
+
+            const targetId = orderObj.id ?? orderId;
+
+            const patchPayloads = [
+                { no_pesanan, no_resi: tracking_number, status },
+                { no_pesanan, tracking_number, status },
+                { no_resi: tracking_number, status },
+                { status }
+            ];
+
+            for (const bodyCandidate of patchPayloads) {
+                const updated = await supabaseRestRequest('orders', {
+                    method: 'PATCH',
+                    matchColumn: 'id',
+                    matchValue: targetId,
+                    body: bodyCandidate
                 });
-                const data = await res.json();
-                if (data.success) {
-                    alert('✅ Status pesanan & resi berhasil disimpan ke database!');
-                    fetchOrdersFromDB();
-                    fetchSystemStatsFromDB();
-                } else {
-                    alert('Gagal memperbarui pesanan: ' + (data.message || 'Kesalahan server'));
-                }
-            } catch (err) {
-                console.error('Error update order:', err);
-                alert('Gagal terhubung ke backend.');
+                if (Array.isArray(updated) && updated.length > 0) break;
             }
+
+            alert('Perubahan pesanan berhasil disimpan ke database.');
+            fetchOrdersFromDB();
+            fetchSystemStatsFromDB();
         }
 
-        // --- DATA PENGGUNA DARI SUPABASE ---
         async function fetchUsersFromDB() {
-            const baseUrl = getApiBaseUrl();
             const tbody = document.getElementById('users-table-body');
-            try {
-                const res = await fetch(`${baseUrl}/api/users`);
-                const data = await res.json();
-                const users = data.users || data.data || [];
+            const sbUsers = await supabaseRestRequest('users', { method: 'GET' });
+            const users = Array.isArray(sbUsers) ? sbUsers : [];
 
-                if (data.success && users.length > 0) {
-                    tbody.innerHTML = users.map(u => `
-                        <tr>
-                            <td><strong>${u.nama || u.name || u.full_name || '-'}</strong></td>
-                            <td>${u.email || '-'}</td>
-                            <td>${u.region || u.city || '-'}</td>
-                            <td><span class="status-badge green">${u.status || 'Aktif'}</span></td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada data pengguna di database.</td></tr>';
-                }
-            } catch (err) {
-                console.warn('Gagal memuat pengguna:', err);
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:red;">Gagal terhubung ke endpoint /api/users.</td></tr>';
+            usersCache = users;
+            document.getElementById('stat-total-users').innerText = `${users.length.toLocaleString('id-ID')} Akun`;
+
+            if (users.length > 0) {
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td><strong>${u.nama || u.name || 'Pengguna Litera'}</strong></td>
+                        <td>${u.email || '-'}</td>
+                        <td>${u.region || u.wilayah || u.city || 'Makassar'}</td>
+                        <td><span class="status-badge green">${u.status || 'Aktif'}</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada data pengguna terdaftar.</td></tr>';
             }
         }
 
-        // --- LOGIKA PENGATURAN WEBSITE & FOOTER ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 if (!file) return resolve(null);
@@ -968,116 +2236,183 @@
             });
         }
 
-        function previewSettingImage(event, previewElementId, applyTargetId = null) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgEl = document.getElementById(previewElementId);
-                    if (imgEl) imgEl.src = e.target.result;
-                    if (applyTargetId) {
-                        const targetEl = document.getElementById(applyTargetId);
-                        if (targetEl) {
-                            if (targetEl.tagName === 'LINK') targetEl.href = e.target.result;
-                            else targetEl.src = e.target.result;
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
+        function applyBrandingVisuals(type, dataUrl) {
+            if (!dataUrl) return;
+            if (type === 'logo') {
+                currentSettingsCache.logo = dataUrl;
+                const previewLogo = document.getElementById('preview-setting-logo');
+                const headerLogo = document.getElementById('admin-brand-logo-img');
+                if (previewLogo) previewLogo.src = dataUrl;
+                if (headerLogo) headerLogo.src = dataUrl;
+            } else if (type === 'favicon') {
+                currentSettingsCache.favicon = dataUrl;
+                const previewFav = document.getElementById('preview-setting-favicon');
+                const dynamicFav = document.getElementById('admin-dynamic-favicon');
+                if (previewFav) previewFav.src = dataUrl;
+                if (dynamicFav) {
+                    dynamicFav.setAttribute('href', dataUrl);
+                    dynamicFav.href = dataUrl;
+                }
+                document.querySelectorAll('link[rel*="icon"]').forEach(linkEl => {
+                    linkEl.setAttribute('href', dataUrl);
+                    linkEl.href = dataUrl;
+                });
+            }
+            try {
+                localStorage.setItem('litera_site_settings', JSON.stringify(currentSettingsCache));
+            } catch (_) {}
+        }
+
+        async function persistBrandingField(type, dataUrl) {
+            const patch = {
+                ...currentSettingsCache,
+                [type]: dataUrl
+            };
+            currentSettingsCache = patch;
+            try {
+                localStorage.setItem('litera_site_settings', JSON.stringify(currentSettingsCache));
+            } catch (_) {}
+
+            const existingRows = await supabaseRestRequest('web_settings', { method: 'GET' });
+            if (Array.isArray(existingRows) && existingRows.length > 0 && existingRows[0].id !== undefined) {
+                await supabaseRestRequest('web_settings', {
+                    method: 'PATCH',
+                    matchColumn: 'id',
+                    matchValue: existingRows[0].id,
+                    body: { [type]: dataUrl }
+                });
+            } else {
+                await supabaseRestRequest('web_settings', {
+                    method: 'PATCH',
+                    matchColumn: 'id',
+                    matchValue: 1,
+                    body: { [type]: dataUrl }
+                });
             }
         }
 
-        function fetchWebsiteSettingsForAdmin() {
-            const baseUrl = getApiBaseUrl();
-            fetch(`${baseUrl}/api/settings`)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success || !data.settings) return;
-                    const s = data.settings;
-                    currentSettingsCache = { ...s };
+        function handleImmediateBrandingChange(event, type) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const dataUrl = e.target.result;
+                applyBrandingVisuals(type, dataUrl);
+                await persistBrandingField(type, dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
 
-                    if (s.nama_organisasi) document.getElementById('setting-nama-organisasi').value = s.nama_organisasi;
-                    if (s.tagline) document.getElementById('setting-tagline').value = s.tagline;
-                    if (s.copyright_text) document.getElementById('setting-copyright-text').value = s.copyright_text;
-                    if (s.no_telp) document.getElementById('setting-no-telp').value = s.no_telp;
-                    if (s.email) document.getElementById('setting-email').value = s.email;
-                    if (s.alamat) document.getElementById('setting-alamat').value = s.alamat;
+        function fillSettingsForm(s) {
+            if (!s || typeof s !== 'object') return;
+            currentSettingsCache = { ...currentSettingsCache, ...s };
+            if (s.nama_organisasi) document.getElementById('setting-nama-organisasi').value = s.nama_organisasi;
+            if (s.tagline) document.getElementById('setting-tagline').value = s.tagline;
+            if (s.copyright_text) document.getElementById('setting-copyright-text').value = s.copyright_text;
+            if (s.no_telp) document.getElementById('setting-no-telp').value = s.no_telp;
+            if (s.email) document.getElementById('setting-email').value = s.email;
+            if (s.alamat) document.getElementById('setting-alamat').value = s.alamat;
+            if (s.logo) applyBrandingVisuals('logo', s.logo);
+            if (s.favicon) applyBrandingVisuals('favicon', s.favicon);
+            if (s.link_instagram) document.getElementById('setting-link-instagram').value = s.link_instagram;
+            if (s.link_facebook) document.getElementById('setting-link-facebook').value = s.link_facebook;
+            if (s.link_tiktok) document.getElementById('setting-link-tiktok').value = s.link_tiktok;
+            if (s.link_youtube) document.getElementById('setting-link-youtube').value = s.link_youtube;
+            if (s.link_linkedin) document.getElementById('setting-link-linkedin').value = s.link_linkedin;
+            if (s.link_maps) document.getElementById('setting-link-maps').value = s.link_maps;
+            if (s.smtp_host) document.getElementById('setting-smtp-host').value = s.smtp_host;
+            if (s.smtp_port) document.getElementById('setting-smtp-port').value = s.smtp_port;
+            if (s.smtp_user) document.getElementById('setting-smtp-user').value = s.smtp_user;
+            if (s.smtp_from_email) document.getElementById('setting-smtp-from-email').value = s.smtp_from_email;
+        }
 
-                    if (s.logo) {
-                        document.getElementById('preview-setting-logo').src = s.logo;
-                        document.getElementById('admin-brand-logo-img').src = s.logo;
-                    }
-                    if (s.favicon) {
-                        document.getElementById('preview-setting-favicon').src = s.favicon;
-                        const fav = document.getElementById('admin-dynamic-favicon');
-                        if (fav) fav.href = s.favicon;
-                    }
+        async function fetchWebsiteSettingsForAdmin() {
+            try {
+                const cached = JSON.parse(localStorage.getItem('litera_site_settings') || 'null');
+                if (cached && typeof cached === 'object') fillSettingsForm(cached);
+            } catch (_) {}
 
-                    if (s.link_instagram) document.getElementById('setting-link-instagram').value = s.link_instagram;
-                    if (s.link_facebook) document.getElementById('setting-link-facebook').value = s.link_facebook;
-                    if (s.link_tiktok) document.getElementById('setting-link-tiktok').value = s.link_tiktok;
-                    if (s.link_youtube) document.getElementById('setting-link-youtube').value = s.link_youtube;
-                    if (s.link_linkedin) document.getElementById('setting-link-linkedin').value = s.link_linkedin;
-                    if (s.link_maps) document.getElementById('setting-link-maps').value = s.link_maps;
+            const sbRows = await supabaseRestRequest('web_settings', { method: 'GET' });
+            if (Array.isArray(sbRows) && sbRows.length > 0) {
+                fillSettingsForm(sbRows[0]);
+            }
+        }
 
-                    if (s.smtp_host) document.getElementById('setting-smtp-host').value = s.smtp_host;
-                    if (s.smtp_port) document.getElementById('setting-smtp-port').value = s.smtp_port;
-                    if (s.smtp_user) document.getElementById('setting-smtp-user').value = s.smtp_user;
-                    if (s.smtp_from_email) document.getElementById('setting-smtp-from-email').value = s.smtp_from_email;
-                })
-                .catch(err => console.warn('Gagal memuat pengaturan dari server:', err));
+        function collectCurrentSettingsPayload(extraFields = {}) {
+            const getVal = (id, fallbackKey) => {
+                const el = document.getElementById(id);
+                const val = el ? el.value : '';
+                if (val !== '') return val;
+                return currentSettingsCache[fallbackKey] !== undefined ? currentSettingsCache[fallbackKey] : '';
+            };
+
+            return {
+                nama_organisasi: getVal('setting-nama-organisasi', 'nama_organisasi') || 'LITERA Hub',
+                tagline: getVal('setting-tagline', 'tagline') || 'Digital Library & Hub',
+                copyright_text: getVal('setting-copyright-text', 'copyright_text') || '© 2026 LITERA. All Rights Reserved.',
+                no_telp: getVal('setting-no-telp', 'no_telp'),
+                email: getVal('setting-email', 'email'),
+                alamat: getVal('setting-alamat', 'alamat'),
+                logo: currentSettingsCache.logo || '',
+                favicon: currentSettingsCache.favicon || '',
+                link_instagram: getVal('setting-link-instagram', 'link_instagram'),
+                link_facebook: getVal('setting-link-facebook', 'link_facebook'),
+                link_tiktok: getVal('setting-link-tiktok', 'link_tiktok'),
+                link_youtube: getVal('setting-link-youtube', 'link_youtube'),
+                link_linkedin: getVal('setting-link-linkedin', 'link_linkedin'),
+                link_maps: getVal('setting-link-maps', 'link_maps'),
+                smtp_host: getVal('setting-smtp-host', 'smtp_host') || 'smtp.gmail.com',
+                smtp_port: Number(getVal('setting-smtp-port', 'smtp_port')) || 587,
+                smtp_user: getVal('setting-smtp-user', 'smtp_user'),
+                smtp_from_email: getVal('setting-smtp-from-email', 'smtp_from_email'),
+                ...extraFields
+            };
         }
 
         async function saveBrandingOnly() {
-            const baseUrl = getApiBaseUrl();
             const logoFile = document.getElementById('setting-logo').files[0];
             const faviconFile = document.getElementById('setting-favicon').files[0];
 
-            if (!logoFile && !faviconFile) {
+            const logoBase64 = await fileToBase64(logoFile);
+            const faviconBase64 = await fileToBase64(faviconFile);
+
+            if (!logoBase64 && !faviconBase64 && !currentSettingsCache.logo && !currentSettingsCache.favicon) {
                 alert('Pilih file Logo Utama atau Favicon terlebih dahulu.');
                 return;
             }
 
-            const btn = document.getElementById('btn-save-branding-only');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Logo/Favicon...';
+            if (logoBase64) applyBrandingVisuals('logo', logoBase64);
+            if (faviconBase64) applyBrandingVisuals('favicon', faviconBase64);
 
+            const brandingPatch = {
+                ...(logoBase64 ? { logo: logoBase64 } : (currentSettingsCache.logo ? { logo: currentSettingsCache.logo } : {})),
+                ...(faviconBase64 ? { favicon: faviconBase64 } : (currentSettingsCache.favicon ? { favicon: currentSettingsCache.favicon } : {}))
+            };
+
+            currentSettingsCache = { ...currentSettingsCache, ...brandingPatch };
             try {
-                const logoBase64 = await fileToBase64(logoFile);
-                const faviconBase64 = await fileToBase64(faviconFile);
+                localStorage.setItem('litera_site_settings', JSON.stringify(currentSettingsCache));
+            } catch (_) {}
 
-                const payload = { ...currentSettingsCache };
-                if (logoBase64) payload.logo = logoBase64;
-                if (faviconBase64) payload.favicon = faviconBase64;
+            const existingRows = await supabaseRestRequest('web_settings', { method: 'GET' });
+            const targetId = (Array.isArray(existingRows) && existingRows.length > 0 && existingRows[0].id !== undefined)
+                ? existingRows[0].id
+                : 1;
 
-                const response = await fetch(`${baseUrl}/api/settings`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await response.json();
+            await supabaseRestRequest('web_settings', {
+                method: 'PATCH',
+                matchColumn: 'id',
+                matchValue: targetId,
+                body: brandingPatch
+            });
 
-                if (data.success) {
-                    alert('✅ Logo Utama & Favicon berhasil disimpan!');
-                    document.getElementById('setting-logo').value = '';
-                    document.getElementById('setting-favicon').value = '';
-                    fetchWebsiteSettingsForAdmin();
-                } else {
-                    alert('Gagal menyimpan logo/favicon: ' + (data.message || 'Terjadi kesalahan'));
-                }
-            } catch (err) {
-                console.error('Error simpan branding:', err);
-                alert('Gagal terhubung ke server!');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-            }
+            document.getElementById('setting-logo').value = '';
+            document.getElementById('setting-favicon').value = '';
+            alert('Logo Utama & Favicon berhasil diperbarui tanpa perlu mengisi kolom lain.');
         }
 
         async function handleWebsiteSettingsSubmit(e) {
             e.preventDefault();
-            const baseUrl = getApiBaseUrl();
 
             const saveBtn = document.getElementById('btn-save-settings');
             const originalText = saveBtn.innerHTML;
@@ -1091,51 +2426,35 @@
                 const logoBase64 = await fileToBase64(logoFile);
                 const faviconBase64 = await fileToBase64(faviconFile);
 
-                const payload = {
-                    ...currentSettingsCache,
-                    nama_organisasi: document.getElementById('setting-nama-organisasi').value || currentSettingsCache.nama_organisasi || 'LITERA Hub',
-                    tagline: document.getElementById('setting-tagline').value || currentSettingsCache.tagline || 'Digital Library & Hub',
-                    copyright_text: document.getElementById('setting-copyright-text').value || currentSettingsCache.copyright_text || '© 2026 LITERA. All Rights Reserved.',
-                    no_telp: document.getElementById('setting-no-telp').value || currentSettingsCache.no_telp || '',
-                    email: document.getElementById('setting-email').value || currentSettingsCache.email || '',
-                    alamat: document.getElementById('setting-alamat').value || currentSettingsCache.alamat || '',
+                if (logoBase64) applyBrandingVisuals('logo', logoBase64);
+                if (faviconBase64) applyBrandingVisuals('favicon', faviconBase64);
+
+                const extra = {
                     logo: logoBase64 || currentSettingsCache.logo || '',
-                    favicon: faviconBase64 || currentSettingsCache.favicon || '',
-                    link_instagram: document.getElementById('setting-link-instagram').value,
-                    link_facebook: document.getElementById('setting-link-facebook').value,
-                    link_tiktok: document.getElementById('setting-link-tiktok').value,
-                    link_youtube: document.getElementById('setting-link-youtube').value,
-                    link_linkedin: document.getElementById('setting-link-linkedin').value,
-                    link_maps: document.getElementById('setting-link-maps').value,
-                    smtp_host: document.getElementById('setting-smtp-host').value,
-                    smtp_port: Number(document.getElementById('setting-smtp-port').value) || 587,
-                    smtp_user: document.getElementById('setting-smtp-user').value,
-                    smtp_from_email: document.getElementById('setting-smtp-from-email').value
+                    favicon: faviconBase64 || currentSettingsCache.favicon || ''
                 };
 
-                const smtpPassVal = document.getElementById('setting-smtp-password').value;
-                if (smtpPassVal) {
-                    payload.smtp_password = smtpPassVal;
-                }
+                const payload = collectCurrentSettingsPayload(extra);
+                currentSettingsCache = { ...currentSettingsCache, ...payload };
+                try {
+                    localStorage.setItem('litera_site_settings', JSON.stringify(currentSettingsCache));
+                } catch (_) {}
 
-                const response = await fetch(`${baseUrl}/api/settings`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                const existingRows = await supabaseRestRequest('web_settings', { method: 'GET' });
+                const targetId = (Array.isArray(existingRows) && existingRows.length > 0 && existingRows[0].id !== undefined)
+                    ? existingRows[0].id
+                    : 1;
+
+                await supabaseRestRequest('web_settings', {
+                    method: 'PATCH',
+                    matchColumn: 'id',
+                    matchValue: targetId,
+                    body: payload
                 });
-                const data = await response.json();
 
-                if (data.success) {
-                    alert('✅ Pengaturan Footer & Website berhasil disimpan!');
-                    document.getElementById('setting-logo').value = '';
-                    document.getElementById('setting-favicon').value = '';
-                    fetchWebsiteSettingsForAdmin();
-                } else {
-                    alert('Gagal menyimpan pengaturan: ' + (data.message || 'Terjadi kesalahan'));
-                }
-            } catch (err) {
-                console.error('Error simpan pengaturan:', err);
-                alert('Gagal terhubung ke server!');
+                document.getElementById('setting-logo').value = '';
+                document.getElementById('setting-favicon').value = '';
+                alert('Pengaturan Website berhasil disimpan.');
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
@@ -1150,24 +2469,89 @@
                     document.getElementById('admin-preview-img').src = e.target.result;
                     document.getElementById('sidebar-admin-avatar').src = e.target.result;
                     document.getElementById('header-admin-avatar').src = e.target.result;
-                }
+                };
                 reader.readAsDataURL(file);
             }
         }
 
-        function handleAdminProfileSubmit(e) {
+        async function handleAdminProfileSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('admin-name').value;
+            const email = document.getElementById('admin-email').value;
+            const phone = document.getElementById('admin-phone').value;
+            const avatar = document.getElementById('admin-preview-img').src;
+
             document.getElementById('sidebar-admin-name').innerText = name;
             document.getElementById('header-admin-name').innerText = name;
-            alert(`✅ Profil administrator atas nama "${name}" berhasil diperbarui!`);
+            document.getElementById('sidebar-admin-email').innerText = email;
+
+            const profilePayload = { name, email, phone, avatar };
+            try {
+                localStorage.setItem('litera_admin_profile', JSON.stringify(profilePayload));
+            } catch (_) {}
+
+            alert(`Profil pengelola atas nama "${name}" berhasil disimpan.`);
         }
 
-        window.onload = function() {
-            fetchSystemStatsFromDB();
-            fetchAdminInventoryFromSupabase();
-            fetchWebsiteSettingsForAdmin();
+        window.onload = async function() {
+            await Promise.all([
+                fetchAdminInventoryFromSupabase(),
+                fetchQcQueueFromDB(),
+                fetchOrdersFromDB(),
+                fetchUsersFromDB(),
+                fetchWebsiteSettingsForAdmin()
+            ]);
+            await fetchSystemStatsFromDB();
+            renderAdminNotificationPanel();
         };
+
+        window.addEventListener('storage', (event) => {
+            if (!event || !event.key) return;
+            if (['litera_qc_items', 'litera_titip_jual', 'litera_user_consignments', 'litera_consignments'].includes(event.key)) {
+                fetchQcQueueFromDB();
+                fetchSystemStatsFromDB();
+            }
+            if (['litera_books_cache', 'litera_catalog_books', 'litera_book_stock_status'].includes(event.key)) {
+                fetchAdminInventoryFromSupabase();
+                fetchSystemStatsFromDB();
+            }
+            if (['litera_orders', 'litera_user_orders', 'user_orders'].includes(event.key)) {
+                fetchOrdersFromDB();
+                fetchSystemStatsFromDB();
+            }
+        });
+
+        window.addEventListener('litera:titip-jual-submit', async (event) => {
+            if (event && event.detail) {
+                await insertOrUpdateQcInSupabase(event.detail);
+            }
+            await fetchQcQueueFromDB();
+            await fetchSystemStatsFromDB();
+        });
+
+        window.addEventListener('litera:consignment-submit', async (event) => {
+            if (event && event.detail) {
+                await insertOrUpdateQcInSupabase(event.detail);
+            }
+            await fetchQcQueueFromDB();
+            await fetchSystemStatsFromDB();
+        });
+
+        if (literaBroadcastChannel) {
+            literaBroadcastChannel.onmessage = (event) => {
+                if (!event.data || !event.data.type) return;
+                if (event.data.type === 'catalog-updated') {
+                    fetchAdminInventoryFromSupabase();
+                    fetchSystemStatsFromDB();
+                } else if (event.data.type === 'qc-updated' || event.data.type === 'titip-jual-submit') {
+                    fetchQcQueueFromDB();
+                    fetchSystemStatsFromDB();
+                } else if (event.data.type === 'order-created' || event.data.type === 'order-updated') {
+                    fetchOrdersFromDB();
+                    fetchSystemStatsFromDB();
+                }
+            };
+        }
     </script>
 </body>
 </html>
