@@ -10,138 +10,45 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="../theme.js"></script>
-    <style>
-        /* Pengaman Responsif Tambahan Tanpa Merusak dashboardpengguna.css */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-        .dashboard-container {
-            display: flex;
-            gap: 1.5rem;
-            align-items: flex-start;
-        }
-        .sidebar {
-            flex: 0 0 255px;
-        }
-        .main-content {
-            flex: 1;
-            min-width: 0;
-        }
-        .table-responsive-wrap {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .data-table {
-            width: 100%;
-            min-width: 600px;
-            border-collapse: collapse;
-        }
-        .tracking-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.35rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        .status-badge.green {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .status-badge.yellow {
-            background: #fef9c3;
-            color: #854d0e;
-        }
-        .status-badge.red {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .status-badge.blue {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard-container {
-                flex-direction: column;
-                gap: 1.1rem;
-            }
-            .sidebar {
-                flex: none;
-                width: 100%;
-            }
-            .sidebar-menu {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.45rem;
-            }
-            .sidebar-menu .menu-item {
-                flex: 1 1 auto;
-                min-width: 155px;
-                justify-content: flex-start;
-            }
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 0.9rem;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .brand-tagline-sub,
-            .profile-text {
-                display: none;
-            }
-            .sidebar-menu .menu-item {
-                flex: 1 1 calc(50% - 0.35rem);
-                min-width: 135px;
-                font-size: 0.82rem;
-                padding: 0.6rem 0.7rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .form-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .avatar-edit-box {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .card-title-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-        }
-    </style>
 </head>
 <body>
 
     <!-- HEADER NAVIGATION -->
     <header class="site-header">
         <div class="header-container">
+            <!-- Brand Logo Litera Berupa Gambar -->
             <div class="brand-logo" onclick="location.href='../Katalog/index.html'" style="cursor: pointer;">
                 <img src="../foto/logo.jpeg" alt="Logo LITERA" style="height: 40px; width: auto; object-fit: contain; border-radius: 6px;">
+                
                 <div class="brand-tagline">
                     <span class="brand-tagline-title">LITERA</span>
-                    <span class="brand-tagline-sub">Digital Library &amp; Hub</span>
+                    <span class="brand-tagline-sub">Digital Library & Hub</span>
                 </div>
             </div>
 
-            <div class="header-user-info">
-                <div class="notification-badge">
+            <!-- Header Profile Info -->
+            <div class="header-user-info" style="position: relative;">
+                <div class="notification-badge" id="user-notif-bell-btn" onclick="toggleUserNotificationPanel(event)" role="button" tabindex="0" aria-label="Buka Notifikasi Akun" style="cursor: pointer; position: relative;">
                     <i class="fa-solid fa-bell"></i>
-                    <span class="dot"></span>
+                    <span class="dot" id="user-notif-unread-dot"></span>
                 </div>
+
+                <!-- Dropdown Notifikasi Pengguna -->
+                <div id="user-notif-dropdown-panel" style="display: none; position: fixed; top: 68px; right: 16px; left: auto; width: min(380px, calc(100vw - 32px)); max-height: 75vh; overflow-y: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18); z-index: 1200; text-align: left;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.9rem 1rem; border-bottom: 1px solid #f1f5f9; background: #fafafa; border-radius: 14px 14px 0 0;">
+                        <div>
+                            <strong style="font-size: 0.92rem; color: #0f172a; display: block;">Notifikasi Akun Litera</strong>
+                            <small id="user-notif-summary-sub" style="font-size: 0.75rem; color: #64748b;">Update pengiriman pesanan & status titip jual</small>
+                        </div>
+                        <button type="button" onclick="markAllUserNotificationsRead()" style="background: #fff1f2; color: #7a1c24; border: 1px solid #fecdd3; border-radius: 8px; padding: 0.35rem 0.65rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                            Tandai Dibaca
+                        </button>
+                    </div>
+                    <div id="user-notif-list-container" style="padding: 0.5rem;">
+                        <p style="padding: 1rem; text-align: center; color: #64748b; font-size: 0.84rem; margin: 0;">Memuat pemberitahuan...</p>
+                    </div>
+                </div>
+
                 <div class="user-profile-btn" onclick="showSection('profile-section')" style="cursor: pointer;">
                     <img src="../foto/logo.jpeg" alt="Avatar" class="avatar" id="header-avatar-img">
                     <div class="profile-text">
@@ -166,6 +73,7 @@
             </div>
 
             <nav class="sidebar-menu">
+                <!-- Tombol Home -->
                 <a href="../Katalog/index.html" id="menu-home" class="menu-item">
                     <i class="fa-solid fa-house"></i>
                     <span>Home</span>
@@ -180,7 +88,7 @@
                 </button>
                 <button type="button" onclick="showSection('titip-section')" id="menu-titip" class="menu-item">
                     <i class="fa-solid fa-hand-holding-hand"></i>
-                    <span>Titip Jual &amp; Barter</span>
+                    <span>Titip Jual & Barter</span>
                 </button>
                 <button type="button" onclick="showSection('profile-section')" id="menu-profile" class="menu-item">
                     <i class="fa-solid fa-user-gear"></i>
@@ -205,14 +113,14 @@
 
                 <!-- STATS CARDS GRID -->
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card" onclick="showSection('orders-section')" style="cursor: pointer;">
                         <div class="stat-icon red"><i class="fa-solid fa-shopping-bag"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Total Pesanan</span>
                             <span class="stat-value" id="stat-user-orders">0 Buku</span>
                         </div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" onclick="showSection('titip-section')" style="cursor: pointer;">
                         <div class="stat-icon dark"><i class="fa-solid fa-book-bookmark"></i></div>
                         <div class="stat-info">
                             <span class="stat-label">Buku Dititipkan</span>
@@ -240,38 +148,36 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: PESANAN SAYA (KHUSUS PEMBELIAN BUKU) -->
+            <!-- SECTION 2: PESANAN SAYA -->
             <div id="orders-section" class="dashboard-section">
                 <div class="section-header">
                     <h2>Riwayat Pesanan Buku</h2>
-                    <p>Daftar transaksi pembelian buku Anda di Litera (tidak termasuk buku titip jual).</p>
+                    <p>Daftar transaksi pembelian buku Anda di Litera.</p>
                 </div>
                 <div class="content-card">
-                    <div class="table-responsive-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>No. Invoice</th>
-                                    <th>Buku</th>
-                                    <th>Tanggal</th>
-                                    <th>Total Tagihan</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-orders-table-body">
-                                <tr>
-                                    <td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Memuat riwayat pesanan dari database...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No. Invoice</th>
+                                <th>Buku</th>
+                                <th>Tanggal</th>
+                                <th>Total Tagihan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-orders-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Memuat riwayat pesanan dari database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- SECTION 3: TITIP JUAL & BARTER -->
             <div id="titip-section" class="dashboard-section">
                 <div class="section-header">
-                    <h2>Titip Jual &amp; Barter Buku Bekas</h2>
+                    <h2>Titip Jual & Barter Buku Bekas</h2>
                     <p>Pantau status stok buku yang sedang Anda titipkan di Litera Hub.</p>
                 </div>
                 <div class="content-card">
@@ -279,23 +185,21 @@
                         <h3>Daftar Buku Dititipkan</h3>
                         <button type="button" class="btn-primary-sm" onclick="location.href='../Katalog/index.html'">+ Ajukan Titip Jual</button>
                     </div>
-                    <div class="table-responsive-wrap">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Judul Buku</th>
-                                    <th>Kategori</th>
-                                    <th>Harga Jual</th>
-                                    <th>Status QC</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-titip-table-body">
-                                <tr>
-                                    <td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Memuat daftar buku titipan dari database...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Judul Buku</th>
+                                <th>Kategori</th>
+                                <th>Harga Jual</th>
+                                <th>Status QC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-titip-table-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding: 1.25rem; color:#666;">Memuat daftar buku titipan dari database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -308,11 +212,13 @@
 
                 <div class="content-card">
                     <form class="profile-form" onsubmit="handleProfileSubmit(event)">
+                        <!-- Avatar Change Box -->
                         <div class="avatar-edit-box">
                             <img src="../foto/logo.jpeg" alt="Avatar" class="avatar-preview" id="avatar-preview-img">
                             <div class="avatar-edit-info">
                                 <h4>Foto Profil Anda</h4>
                                 <p>Gunakan foto formal/semi-formal berukuran maksimal 2MB.</p>
+                                
                                 <input type="file" id="hidden-file-input" accept="image/*" style="display: none;" onchange="previewProfilePhoto(event)">
                                 <button type="button" class="btn-secondary-sm" onclick="document.getElementById('hidden-file-input').click();">Ganti Foto</button>
                             </div>
@@ -377,52 +283,161 @@
             ? new BroadcastChannel('litera_sync')
             : null;
 
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+        let cachedUserOrdersList = [];
+        let cachedUserConsignmentsList = [];
+        let readUserNotifIds = new Set();
+
+        try {
+            const savedUserRead = JSON.parse(localStorage.getItem('litera_user_read_notifs') || '[]');
+            if (Array.isArray(savedUserRead)) readUserNotifIds = new Set(savedUserRead);
+        } catch (_) {}
+
+        function persistUserReadNotifs() {
+            try {
+                localStorage.setItem('litera_user_read_notifs', JSON.stringify(Array.from(readUserNotifIds)));
+            } catch (_) {}
         }
 
-        // Deteksi ketat agar buku titip jual TIDAK pernah masuk ke Pesanan Saya
-        function isConsignmentRecord(record) {
-            if (!record) return false;
-            if (typeof record === 'string') {
-                return /^\[TITIP\s*JUAL\]/i.test(record.trim()) || /\btitip\s*jual\b/i.test(record);
+        function buildUserNotifications() {
+            const list = [];
+
+            cachedUserOrdersList.forEach((ord, idx) => {
+                const noInv = ord.no_pesanan || ord.invoice || ord.order_number || ('#' + (ord.id || ord.order_id || (idx + 1)));
+                const resi = ord.no_resi || ord.tracking_number || ord.awb || ord.resi || '';
+                const bookTitle = ord.book_title || ord.items || ord.items_summary || ord.judul_buku || 'Pesanan Buku';
+                const statusLabel = normalizeOrderStatusLabel(ord.status || ord.order_status || ord.shipping_status || ord.pengiriman);
+                const statusLower = statusLabel.toLowerCase();
+
+                let badgeColor = '#1d4ed8';
+                let icon = 'fa-box';
+                if (statusLower.includes('selesai')) {
+                    badgeColor = '#15803d';
+                    icon = 'fa-circle-check';
+                } else if (statusLower.includes('kirim')) {
+                    badgeColor = '#7a1c24';
+                    icon = 'fa-truck-fast';
+                } else if (statusLower.includes('kemas')) {
+                    badgeColor = '#d97706';
+                    icon = 'fa-box-open';
+                }
+
+                list.push({
+                    id: `user-ord-${ord.id || noInv}-${statusLabel}`,
+                    title: `Status Pesanan: ${statusLabel}`,
+                    message: `${noInv} (${bookTitle})${resi ? ` • Resi: ${resi}` : ''}`,
+                    icon,
+                    badgeColor,
+                    targetSection: 'orders-section'
+                });
+            });
+
+            cachedUserConsignmentsList.forEach((item, idx) => {
+                const title = item.book_title || item.title || 'Buku Titipan';
+                const stInfo = normalizeUserQcStatus(item.status || item.qc_status || item.examination_status);
+                const statusText = stInfo.key === 'approved'
+                    ? 'Disetujui Tayang'
+                    : (stInfo.key === 'rejected' ? 'Ditolak Pemeriksaan' : 'Menunggu Pemeriksaan QC');
+                const badgeColor = stInfo.key === 'approved'
+                    ? '#15803d'
+                    : (stInfo.key === 'rejected' ? '#b91c1c' : '#d97706');
+
+                list.push({
+                    id: `user-qc-${item.id || title}-${stInfo.key}-${idx}`,
+                    title: `Titip Jual: ${statusText}`,
+                    message: `Buku "${title}" berstatus ${statusText}.`,
+                    icon: 'fa-hand-holding-hand',
+                    badgeColor,
+                    targetSection: 'titip-section'
+                });
+            });
+
+            if (list.length === 0) {
+                list.push({
+                    id: 'user-notif-welcome',
+                    title: 'Selamat Datang di LITERA',
+                    message: 'Belum ada pembaruan pesanan atau titip jual baru saat ini.',
+                    icon: 'fa-bell',
+                    badgeColor: '#7a1c24',
+                    targetSection: 'overview-section'
+                });
             }
-            if (typeof record !== 'object') return false;
-            if (record.is_consignment === true) return true;
 
-            const typeVal = String(
-                record.type ||
-                record.jenis ||
-                record.submission_type ||
-                record.mode ||
-                record.order_type ||
-                record.kategori_transaksi ||
-                ''
-            ).trim().toLowerCase();
-
-            if (typeVal.includes('titip') || typeVal.includes('consignment') || typeVal.includes('barter')) {
-                return true;
-            }
-
-            const textBlob = [
-                record.book_title,
-                record.title,
-                record.judul_buku,
-                record.items,
-                record.items_summary,
-                record.description,
-                record.raw_text,
-                record.note,
-                record.catatan
-            ].filter(Boolean).join(' ');
-
-            return /^\[TITIP\s*JUAL\]/i.test(textBlob.trim()) || /\btitip\s*jual\b/i.test(textBlob);
+            return list;
         }
+
+        function renderUserNotificationPanel() {
+            const container = document.getElementById('user-notif-list-container');
+            const dot = document.getElementById('user-notif-unread-dot');
+            const sub = document.getElementById('user-notif-summary-sub');
+            if (!container) return;
+
+            const notifs = buildUserNotifications();
+            const unreadCount = notifs.filter(n => !readUserNotifIds.has(n.id)).length;
+
+            if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+            if (sub) {
+                sub.textContent = unreadCount > 0
+                    ? `${unreadCount} pemberitahuan baru untuk Anda`
+                    : 'Semua pemberitahuan sudah dibaca';
+            }
+
+            container.innerHTML = notifs.map((n, i) => {
+                const isUnread = !readUserNotifIds.has(n.id);
+                return `
+                    <div onclick="handleUserNotificationClick(${i})" style="display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.75rem; border-radius: 10px; margin-bottom: 0.35rem; background: ${isUnread ? '#fff8f8' : '#ffffff'}; border: 1px solid ${isUnread ? '#fecdd3' : '#f1f5f9'}; cursor: pointer;">
+                        <div style="width: 34px; height: 34px; border-radius: 50%; background: ${n.badgeColor}18; color: ${n.badgeColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.9rem;">
+                            <i class="fa-solid ${n.icon}"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
+                                <strong style="font-size: 0.82rem; color: #0f172a;">${n.title}</strong>
+                                ${isUnread ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #7a1c24; flex-shrink: 0;"></span>' : ''}
+                            </div>
+                            <p style="margin: 0.22rem 0 0; font-size: 0.79rem; line-height: 1.4; color: #475569;">${n.message}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleUserNotificationClick(index) {
+            const notifs = buildUserNotifications();
+            const chosen = notifs[index];
+            if (!chosen) return;
+            readUserNotifIds.add(chosen.id);
+            persistUserReadNotifs();
+            if (chosen.targetSection) {
+                showSection(chosen.targetSection);
+            }
+            renderUserNotificationPanel();
+            const panel = document.getElementById('user-notif-dropdown-panel');
+            if (panel) panel.style.display = 'none';
+        }
+
+        function markAllUserNotificationsRead() {
+            const notifs = buildUserNotifications();
+            notifs.forEach(n => readUserNotifIds.add(n.id));
+            persistUserReadNotifs();
+            renderUserNotificationPanel();
+        }
+
+        function toggleUserNotificationPanel(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('user-notif-dropdown-panel');
+            if (!panel) return;
+            const isOpen = panel.style.display === 'block';
+            panel.style.display = isOpen ? 'none' : 'block';
+            if (!isOpen) renderUserNotificationPanel();
+        }
+
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('user-notif-dropdown-panel');
+            const bell = document.getElementById('user-notif-bell-btn');
+            if (!panel || panel.style.display !== 'block') return;
+            if (!panel.contains(event.target) && (!bell || !bell.contains(event.target))) {
+                panel.style.display = 'none';
+            }
+        });
 
         function getLoggedInUser() {
             try {
@@ -435,7 +450,9 @@
 
         function buildAvatarUrl(user, displayName) {
             const customPhoto = user && (user.foto || user.avatar || user.photo);
-            if (customPhoto) return customPhoto;
+            if (customPhoto) {
+                return customPhoto;
+            }
             const initial = encodeURIComponent((displayName || 'L').trim().charAt(0).toUpperCase() || 'L');
             return `https://ui-avatars.com/api/?name=${initial}&background=7a1c24&color=ffffff&bold=true`;
         }
@@ -455,8 +472,11 @@
             document.getElementById('sidebar-user-email').textContent = displayEmail;
             document.getElementById('welcome-title').textContent = `Halo, ${displayName}! 👋`;
 
-            ['header-avatar-img', 'sidebar-avatar-img', 'avatar-preview-img'].forEach(id => {
-                const imgEl = document.getElementById(id);
+            const headerAvatar = document.getElementById('header-avatar-img');
+            const sidebarAvatar = document.getElementById('sidebar-avatar-img');
+            const previewAvatar = document.getElementById('avatar-preview-img');
+
+            [headerAvatar, sidebarAvatar, previewAvatar].forEach(imgEl => {
                 if (imgEl) {
                     imgEl.src = avatarSrc;
                     imgEl.alt = displayName;
@@ -476,13 +496,13 @@
         }
 
         function showSection(sectionId) {
-            const targetSection = document.getElementById(sectionId);
-            if (!targetSection) return;
+            const sections = document.querySelectorAll('.dashboard-section');
+            sections.forEach(sec => sec.classList.remove('active-section'));
 
-            document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active-section'));
-            document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => item.classList.remove('active'));
+            const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
 
-            targetSection.classList.add('active-section');
+            document.getElementById(sectionId).classList.add('active-section');
 
             const targetMenuId = 'menu-' + sectionId.replace('-section', '');
             const targetMenu = document.getElementById(targetMenuId);
@@ -491,13 +511,13 @@
 
         let tempNewAvatar = null;
         function previewProfilePhoto(event) {
-            const file = event.target.files && event.target.files[0];
+            const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     tempNewAvatar = e.target.result;
                     document.getElementById('avatar-preview-img').src = tempNewAvatar;
-                };
+                }
                 reader.readAsDataURL(file);
             }
         }
@@ -536,14 +556,6 @@
             return String(rawStatus).trim();
         }
 
-        function getOrderStatusBadgeClass(statusLabel) {
-            const s = String(statusLabel || '').toLowerCase();
-            if (s.includes('selesai')) return 'green';
-            if (s.includes('kirim')) return 'blue';
-            if (s.includes('kemas')) return 'yellow';
-            return 'blue';
-        }
-
         function extractOrdersArray(payload) {
             if (Array.isArray(payload)) return payload;
             if (!payload || typeof payload !== 'object') return [];
@@ -554,11 +566,10 @@
         }
 
         async function fetchAllOrdersFromDbOrBackend() {
-            // Prioritaskan Supabase REST agar status terbaru dari Dashboard Admin langsung terbaca
             const sbController = new AbortController();
             const sbTimer = setTimeout(() => sbController.abort(), 5000);
             try {
-                const sbRes = await fetch(`${SUPABASE_URL_USER}/rest/v1/orders?select=*`, {
+                const sbRes = await fetch(`${SUPABASE_URL_USER}/rest/v1/orders?select=*&order=id.desc`, {
                     cache: 'no-store',
                     signal: sbController.signal,
                     headers: {
@@ -604,7 +615,6 @@
                     if (!Array.isArray(list)) return;
                     list.forEach(item => {
                         if (!item || typeof item !== 'object') return;
-                        if (isConsignmentRecord(item)) return;
                         const uniqueKey = String(item.no_pesanan || item.invoice || item.id || item.order_id || JSON.stringify(item));
                         if (!seen.has(uniqueKey)) {
                             seen.add(uniqueKey);
@@ -616,6 +626,52 @@
             return merged;
         }
 
+        function mergeOrdersPreferLatest(dbOrders = [], localOrders = []) {
+            if (dbOrders.length === 0) return localOrders;
+            if (localOrders.length === 0) return dbOrders;
+
+            const localMap = new Map();
+            localOrders.forEach(lo => {
+                const keys = [lo.id, lo.order_id, lo.no_pesanan, lo.invoice]
+                    .filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+                    .map(v => String(v).trim());
+                keys.forEach(k => localMap.set(k, lo));
+            });
+
+            return dbOrders.map(dbOrd => {
+                const keys = [dbOrd.id, dbOrd.order_id, dbOrd.no_pesanan, dbOrd.invoice]
+                    .filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+                    .map(v => String(v).trim());
+                let matchedLocal = null;
+                for (const k of keys) {
+                    if (localMap.has(k)) {
+                        matchedLocal = localMap.get(k);
+                        break;
+                    }
+                }
+                if (!matchedLocal) return dbOrd;
+
+                const dbUpdated = Date.parse(dbOrd.updated_at || '') || 0;
+                const locUpdated = Date.parse(matchedLocal.updated_at || '') || 0;
+                if (locUpdated > dbUpdated && (matchedLocal.status || matchedLocal.shipping_status)) {
+                    return {
+                        ...dbOrd,
+                        ...matchedLocal,
+                        status: matchedLocal.status || dbOrd.status,
+                        no_resi: matchedLocal.no_resi || dbOrd.no_resi,
+                        no_pesanan: matchedLocal.no_pesanan || dbOrd.no_pesanan
+                    };
+                }
+                return {
+                    ...matchedLocal,
+                    ...dbOrd,
+                    status: dbOrd.status || matchedLocal.status,
+                    no_resi: dbOrd.no_resi || matchedLocal.no_resi,
+                    no_pesanan: dbOrd.no_pesanan || matchedLocal.no_pesanan
+                };
+            });
+        }
+
         function matchOrderToUser(order, user) {
             if (!user) return true;
             const uEmail = String(user.email || '').trim().toLowerCase();
@@ -623,7 +679,7 @@
             const uId = user.id !== undefined && user.id !== null ? String(user.id).trim() : '';
 
             const oEmail = String(order.email || order.user_email || '').trim().toLowerCase();
-            const oName = String(order.customer_name || order.buyer_name || order.user_name || order.nama_pembeli || order.nama || '').trim().toLowerCase();
+            const oName = String(order.customer_name || order.buyer_name || order.user_name || order.nama_pembeli || '').trim().toLowerCase();
             const oId = order.user_id !== undefined && order.user_id !== null ? String(order.user_id).trim() : '';
 
             if (uEmail && oEmail && uEmail === oEmail) return true;
@@ -637,25 +693,23 @@
             const trackingContainer = document.getElementById('active-tracking-container');
             const trackingBadge = document.getElementById('tracking-badge-status');
 
-            let allDbOrders = await fetchAllOrdersFromDbOrBackend();
+            const fetchedDbOrders = await fetchAllOrdersFromDbOrBackend();
             const localOrders = getLocalSavedOrders();
-
-            // Saring ketat: hanya transaksi pembelian buku, bukan titip jual
-            allDbOrders = (Array.isArray(allDbOrders) ? allDbOrders : [])
-                .filter(o => o && typeof o === 'object' && !isConsignmentRecord(o));
+            const allDbOrders = mergeOrdersPreferLatest(fetchedDbOrders, localOrders);
 
             if (allDbOrders.length > 0) {
                 try {
                     localStorage.setItem('litera_orders', JSON.stringify(allDbOrders));
                 } catch (_) {}
-            } else {
-                allDbOrders = localOrders.filter(o => o && typeof o === 'object' && !isConsignmentRecord(o));
             }
 
             let userOrders = allDbOrders.filter(o => matchOrderToUser(o, user));
             if (userOrders.length === 0 && allDbOrders.length > 0) {
                 userOrders = allDbOrders;
             }
+
+            cachedUserOrdersList = userOrders;
+            renderUserNotificationPanel();
 
             document.getElementById('stat-user-orders').textContent = `${userOrders.length} Buku`;
 
@@ -664,30 +718,26 @@
                     const noInvoice = order.no_pesanan || order.invoice || order.order_number || ('#' + (order.id || order.order_id || (idx + 1)));
                     const bookLabel = order.book_title || order.items || order.items_summary || order.judul_buku || '-';
                     const resiLabel = order.no_resi || order.tracking_number || order.awb || order.resi || '';
-                    const statusText = normalizeOrderStatusLabel(order.status || order.shipping_status || order.pengiriman);
-                    const badgeColor = getOrderStatusBadgeClass(statusText);
+                    const statusText = normalizeOrderStatusLabel(order.status || order.order_status || order.shipping_status || order.pengiriman);
                     const totalVal = Number(String(order.total ?? order.total_price ?? order.total_bayar ?? 0).replace(/[^0-9.-]/g, '')) || 0;
-                    const dateText = order.created_at
-                        ? (isNaN(Date.parse(order.created_at)) ? order.created_at : new Date(order.created_at).toLocaleDateString('id-ID'))
-                        : '-';
 
                     return `
                         <tr>
-                            <td><strong>${escapeHtml(noInvoice)}</strong>${resiLabel ? `<br><small style="color:#64748b;">Resi: ${escapeHtml(resiLabel)}</small>` : ''}</td>
-                            <td>${escapeHtml(bookLabel)}</td>
-                            <td>${escapeHtml(dateText)}</td>
+                            <td><strong>${noInvoice}</strong>${resiLabel ? `<br><small style="color:#64748b;">Resi: ${resiLabel}</small>` : ''}</td>
+                            <td>${bookLabel}</td>
+                            <td>${order.created_at ? (isNaN(Date.parse(order.created_at)) ? order.created_at : new Date(order.created_at).toLocaleDateString('id-ID')) : '-'}</td>
                             <td class="price">Rp ${totalVal.toLocaleString('id-ID')}</td>
-                            <td><span class="status-badge ${badgeColor}">${escapeHtml(statusText)}</span></td>
+                            <td><span class="status-badge blue">${statusText}</span></td>
                         </tr>
                     `;
                 }).join('');
 
                 const activeOrder = userOrders.find(o => {
-                    const st = normalizeOrderStatusLabel(o.status || o.shipping_status || o.pengiriman).toLowerCase();
+                    const st = normalizeOrderStatusLabel(o.status || o.order_status || o.shipping_status || o.pengiriman).toLowerCase();
                     return !st.includes('selesai');
                 }) || userOrders[0];
 
-                const statusDisplay = normalizeOrderStatusLabel(activeOrder.status || activeOrder.shipping_status || activeOrder.pengiriman);
+                const statusDisplay = normalizeOrderStatusLabel(activeOrder.status || activeOrder.order_status || activeOrder.shipping_status || activeOrder.pengiriman);
                 const statusStr = statusDisplay.toLowerCase();
                 const isPaid = true;
                 const isPacked = ['kemas', 'packing', 'diproses', 'dikirim', 'pengiriman', 'selesai', 'pembayaran terverifikasi', 'cod - diproses'].some(k => statusStr.includes(k));
@@ -701,9 +751,9 @@
                 trackingBadge.textContent = statusDisplay;
                 trackingContainer.innerHTML = `
                     <div class="tracking-info">
-                        <p class="invoice-num">No. Invoice: <strong>${escapeHtml(activeInvoice)}</strong></p>
-                        <p class="courier-name">Resi Pengiriman: <strong>${escapeHtml(activeResi)}</strong></p>
-                        <p class="book-title">Buku: <i>${escapeHtml(activeBook)}</i></p>
+                        <p class="invoice-num">No. Invoice: <strong>${activeInvoice}</strong></p>
+                        <p class="courier-name">Resi Pengiriman: <strong>${activeResi}</strong></p>
+                        <p class="book-title">Buku: <i>${activeBook}</i></p>
                     </div>
                     <div class="tracking-status">
                         <div class="status-step ${isPaid ? 'active' : ''}">
@@ -728,7 +778,7 @@
                     </div>
                 `;
             } else {
-                ordersTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada riwayat pesanan pembelian buku.</td></tr>';
+                ordersTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.25rem; color:#666;">Belum ada riwayat pesanan.</td></tr>';
                 trackingBadge.textContent = 'Tidak Ada';
                 trackingContainer.innerHTML = '<p style="color:#666; padding: 0.75rem 0;">Belum ada pengiriman aktif saat ini.</p>';
             }
@@ -737,10 +787,10 @@
         function normalizeUserQcStatus(rawStatus) {
             const st = String(rawStatus || '').trim().toLowerCase();
             if (['approved', 'setuju', 'disetujui', 'disetujui tayang', 'di-acc', 'acc', 'lolos', 'diterima', 'siap'].includes(st)) {
-                return { key: 'approved', label: 'Disetujui', badge: 'green' };
+                return { key: 'approved', label: 'setuju', badge: 'green' };
             }
             if (['rejected', 'tolak', 'ditolak', 'tidak disetujui', 'tidak acc', 'gagal'].includes(st)) {
-                return { key: 'rejected', label: 'Ditolak', badge: 'red' };
+                return { key: 'rejected', label: 'tolak', badge: 'red' };
             }
             return { key: 'pending', label: 'Dalam Pemeriksaan', badge: 'yellow' };
         }
@@ -829,18 +879,20 @@
                 userItems = allItems;
             }
 
+            cachedUserConsignmentsList = userItems;
+            renderUserNotificationPanel();
+
             document.getElementById('stat-user-consignments').textContent = `${userItems.length} Unit`;
 
             if (userItems.length > 0) {
                 titipTbody.innerHTML = userItems.map(item => {
                     const stInfo = normalizeUserQcStatus(item.status || item.qc_status || item.examination_status);
-                    const titleClean = String(item.book_title || item.title || '-').replace(/^\[TITIP\s*JUAL\]\s*/i, '');
                     return `
                         <tr>
-                            <td>${escapeHtml(titleClean)}</td>
-                            <td>${escapeHtml(item.category || 'Umum')}</td>
+                            <td>${item.book_title || item.title || '-'}</td>
+                            <td>${item.category || '-'}</td>
                             <td class="price">Rp ${Number(item.recommended_price || item.price || 0).toLocaleString('id-ID')}</td>
-                            <td><span class="status-badge ${stInfo.badge}">${escapeHtml(stInfo.label)}</span></td>
+                            <td><span class="status-badge ${stInfo.badge}">${stInfo.label}</span></td>
                         </tr>
                     `;
                 }).join('');
@@ -875,14 +927,12 @@
                 fetchUserOrdersAndTracking(getLoggedInUser() || user);
             });
 
-            window.addEventListener('litera:qc-updated', () => {
-                fetchUserConsignments(getLoggedInUser() || user);
+            window.addEventListener('litera:tracking-updated', () => {
+                fetchUserOrdersAndTracking(getLoggedInUser() || user);
             });
 
-            window.addEventListener('focus', () => {
-                const currentUser = getLoggedInUser() || user;
-                fetchUserOrdersAndTracking(currentUser);
-                fetchUserConsignments(currentUser);
+            window.addEventListener('litera:qc-updated', () => {
+                fetchUserConsignments(getLoggedInUser() || user);
             });
 
             if (userBroadcastChannel) {
