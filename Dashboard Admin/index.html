@@ -1270,28 +1270,31 @@
             sanitizeOrderArraysInLocalStorage();
 
             try {
-                const isShipped = status === 'Dalam Pengiriman' || status === 'Pesanan Selesai';
-                const statusLabelForUser = status === 'Dalam Pengiriman'
+                const normalizedStage = normalizeTrackingStatus(status);
+                const isShipped = normalizedStage === 'Dalam Pengiriman' || normalizedStage === 'Pesanan Selesai';
+                const statusLabelForUser = normalizedStage === 'Dalam Pengiriman'
                     ? 'Dikirim (Dalam Pengiriman)'
-                    : status;
+                    : normalizedStage;
 
                 const updatedOrder = {
                     ...order,
-                    id: order.id || order.order_id,
+                    id: order.id ?? order.order_id ?? noPesanan,
+                    order_id: order.order_id ?? order.id ?? noPesanan,
                     no_pesanan: noPesanan,
                     invoice: noPesanan,
+                    order_number: noPesanan,
                     no_resi: trackingNumber,
                     awb: trackingNumber,
                     tracking_number: trackingNumber,
                     resi: trackingNumber,
-                    status: status,
-                    order_status: status,
+                    status: normalizedStage,
+                    order_status: normalizedStage,
                     status_label: statusLabelForUser,
-                    shipping_status: status,
-                    pengiriman: status,
-                    tracking_stage: status,
+                    shipping_status: normalizedStage,
+                    pengiriman: normalizedStage,
+                    tracking_stage: normalizedStage,
                     is_shipped: isShipped,
-                    updated_at: order.updated_at || new Date().toISOString()
+                    updated_at: new Date().toISOString()
                 };
 
                 ['litera_orders', 'litera_user_orders', 'user_orders'].forEach(storageKey => {
@@ -1300,12 +1303,12 @@
                         .filter(item => item && typeof item === 'object' && !isConsignmentRecord(item) && !isRemovedEntryRow(item));
                     const idx = list.findIndex(item =>
                         (updatedOrder.id && (String(item.id) === String(updatedOrder.id) || String(item.order_id) === String(updatedOrder.id))) ||
-                        (noPesanan && (String(item.no_pesanan || '') === noPesanan || String(item.invoice || '') === noPesanan))
+                        (noPesanan && (String(item.no_pesanan || '') === noPesanan || String(item.invoice || '') === noPesanan || String(item.order_number || '') === noPesanan))
                     );
 
                     if (idx >= 0) {
                         list[idx] = { ...list[idx], ...updatedOrder };
-                    } else if (updatedOrder.id) {
+                    } else if (updatedOrder.id || noPesanan) {
                         list.unshift(updatedOrder);
                     }
 
@@ -1339,16 +1342,18 @@
 
         async function persistOrderStatusToSupabase(orderObj, no_pesanan, tracking_number, status) {
             const targetId = orderObj.id ?? orderObj.order_id;
-            const statusLabelForUser = status === 'Dalam Pengiriman' ? 'Dikirim (Dalam Pengiriman)' : status;
+            const normalizedStage = normalizeTrackingStatus(status);
+            const statusLabelForUser = normalizedStage === 'Dalam Pengiriman' ? 'Dikirim (Dalam Pengiriman)' : normalizedStage;
             const patchPayloads = [
-                { no_pesanan, no_resi: tracking_number, status, shipping_status: status },
-                { no_pesanan, no_resi: tracking_number, status },
-                { no_pesanan, tracking_number, status },
-                { no_resi: tracking_number, status },
-                { status }
+                { no_pesanan, no_resi: tracking_number, tracking_number, status: normalizedStage, order_status: normalizedStage, shipping_status: normalizedStage, status_label: statusLabelForUser },
+                { no_pesanan, no_resi: tracking_number, status: normalizedStage, shipping_status: normalizedStage },
+                { no_pesanan, no_resi: tracking_number, status: normalizedStage },
+                { no_pesanan, tracking_number, status: normalizedStage },
+                { no_resi: tracking_number, status: normalizedStage },
+                { status: normalizedStage }
             ];
 
-            let persisted = false;
+            let persistedRow = null;
             for (const bodyCandidate of patchPayloads) {
                 if (targetId !== undefined && targetId !== null && String(targetId) !== '' && !String(targetId).startsWith('ord-')) {
                     const updated = await supabaseRestRequest('orders', {
@@ -1358,7 +1363,7 @@
                         body: bodyCandidate
                     });
                     if (Array.isArray(updated) && updated.length > 0) {
-                        persisted = true;
+                        persistedRow = updated[0];
                         break;
                     }
                 }
@@ -1370,26 +1375,43 @@
                         body: bodyCandidate
                     });
                     if (Array.isArray(updatedByNo) && updatedByNo.length > 0) {
-                        persisted = true;
+                        persistedRow = updatedByNo[0];
                         break;
                     }
                 }
             }
 
-            if (!persisted && targetId !== undefined && targetId !== null && String(targetId) !== '' && !String(targetId).startsWith('ord-')) {
-                await backendApiRequest('orders', {
+            if (!persistedRow && targetId !== undefined && targetId !== null && String(targetId) !== '' && !String(targetId).startsWith('ord-')) {
+                const apiResp = await backendApiRequest('orders', {
                     method: 'PATCH',
                     id: targetId,
                     body: {
                         no_pesanan,
                         no_resi: tracking_number,
                         tracking_number,
-                        status,
-                        shipping_status: status,
+                        status: normalizedStage,
+                        order_status: normalizedStage,
+                        shipping_status: normalizedStage,
                         status_label: statusLabelForUser
                     }
                 });
+                if (Array.isArray(apiResp) && apiResp.length > 0) {
+                    persistedRow = apiResp[0];
+                }
             }
+
+            if (persistedRow && typeof persistedRow === 'object') {
+                const syncedOrder = {
+                    ...orderObj,
+                    ...persistedRow,
+                    no_pesanan,
+                    no_resi: tracking_number,
+                    tracking_number,
+                    status: normalizedStage
+                };
+                syncOrderToUserDashboardStorage(syncedOrder, no_pesanan, tracking_number, normalizedStage);
+            }
+            return persistedRow;
         }
 
         async function persistGeneratedOrderIdentifiersIfMissing(order, noPesanan, trackingNumber) {
@@ -2560,6 +2582,7 @@
                 tracking_number,
                 resi: tracking_number,
                 status,
+                order_status: status,
                 shipping_status: status,
                 pengiriman: status,
                 updated_at: new Date().toISOString()
@@ -2569,7 +2592,7 @@
 
             dbOrdersCache = dbOrdersCache.map(o =>
                 (String(o.id ?? o.order_id) === String(mergedOrder.id) || String(o.no_pesanan || '') === no_pesanan)
-                    ? { ...o, status, no_pesanan, no_resi: tracking_number }
+                    ? { ...o, status, order_status: status, shipping_status: status, no_pesanan, no_resi: tracking_number }
                     : o
             );
 
@@ -2598,6 +2621,7 @@
                 tracking_number,
                 resi: tracking_number,
                 status,
+                order_status: status,
                 shipping_status: status,
                 pengiriman: status,
                 updated_at: new Date().toISOString()
@@ -2607,7 +2631,7 @@
 
             dbOrdersCache = dbOrdersCache.map(o =>
                 (String(o.id ?? o.order_id) === String(mergedOrder.id) || String(o.no_pesanan || '') === no_pesanan)
-                    ? { ...o, status, no_pesanan, no_resi: tracking_number }
+                    ? { ...o, status, order_status: status, shipping_status: status, no_pesanan, no_resi: tracking_number }
                     : o
             );
 
